@@ -1,15 +1,8 @@
 
-DEBUG = 1
-ifeq ($(DEBUG), 0)
-	CPP = g++ -O3 -Wall
-else
-	CPP = g++ -O0 -Wall -ggdb3
-endif
-
 YACC = bison
 LEX = flex
 
-TGT = cs_ssa
+TGT = cos_ssa
 
 BASE_OBJ = main.o error.o program.o procedure.o
 BASE_HEADERS = error.hh program.hh procedure.hh
@@ -22,13 +15,15 @@ DDG_HEADERS = ddg/ddg_edge.hh ddg/ddg_node.hh
 
 HEADERS = $(BASE_HEADERS) $(CFG_HEADERS) $(SSA_HEADERS) $(DDG_HEADERS)
 
+all: CPP = g++ -O3 -Wall
 all: $(TGT)
+	strip cos_ssa
+
+debug: CPP = g++ -O0 -Wall -ggdb3
+debug: clean $(TGT)
 
 $(TGT): $(BASE_OBJ) $(CFG_OBJ) $(SSA_OBJ) $(DDG_OBJ)
 	$(CPP) $(BASE_OBJ) $(CFG_OBJ) $(SSA_OBJ) $(DDG_OBJ) -o $(TGT) -ly -ll
-ifeq ($(DEBUG), 0)
-	strip cs_ssa
-endif
 
 main.o: main.cc argparse.hh cfg/cfg.tab.hh ssa/ssa.tab.hh $(HEADERS)
 	$(CPP) -c main.cc
