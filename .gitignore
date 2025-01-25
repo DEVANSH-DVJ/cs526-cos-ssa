@@ -1,1 +1,11 @@
 .vscode
+
+*.o
+*.out
+*.output
+
+cos_ssa
+cfg.scan.*
+cfg.tab.*
+ssa.scan.*
+ssa.tab.*
