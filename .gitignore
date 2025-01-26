@@ -9,3 +9,6 @@ cfg.scan.*
 cfg.tab.*
 ssa.scan.*
 ssa.tab.*
+
+*.dot
+*.png
