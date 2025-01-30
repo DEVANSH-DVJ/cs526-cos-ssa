@@ -1,9 +1,9 @@
 
 DEBUG = 1
 ifeq ($(DEBUG), 0)
-	CPP = g++ -O3 -Wall
+	CPP = clang++-14 -O3 -Wall
 else
-	CPP = g++ -O0 -Wall -ggdb3
+	CPP = clang++-14 -O0 -Wall -ggdb3
 endif
 
 YACC = bison
