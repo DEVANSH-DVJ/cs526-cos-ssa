@@ -10,7 +10,14 @@ RUN apt-get update && \
   apt-get clean -y && \
   rm -rf /var/lib/apt/lists/*
 
-RUN mkdir cs526
+RUN groupadd -g 1000 cs526 && \
+  useradd -m -u 1000 -g cs526 -s /bin/bash cs526
 
-ENTRYPOINT ["bash", "-l", "-c"]
-WORKDIR "/cs526"
+ENV HOME=/home/cs526
+USER cs526
+
+RUN echo "umask 0002" >> ~/.bashrc && \
+  echo "alias ll='ls -alF'" >> ~/.bashrc
+
+ENTRYPOINT ["bash", "-l", "-c", "-i"]
+WORKDIR /home/cs526/cos_ssa
