@@ -12,6 +12,7 @@
 %}
 
 %option noyywrap
+%option noinput
 %option nounput
 %option prefix="ssa_"
 
