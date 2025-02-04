@@ -1,4 +1,4 @@
-#include "../headers.hh"
+#include "headers.hh"
 
 using namespace std;
 
