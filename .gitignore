@@ -12,3 +12,5 @@ ssa.tab.*
 
 *.dot
 *.png
+
+build
