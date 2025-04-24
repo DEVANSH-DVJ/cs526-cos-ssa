@@ -1,19 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 project(CoS-SSA LANGUAGES CXX)
 
-# Build type
-option(BUILD_DEBUG "Enable debug build" ON)
-if(BUILD_DEBUG)
-  set(CMAKE_BUILD_TYPE Debug)
-  set(COMPILE_FLAGS "-O0")
-else()
-  set(CMAKE_BUILD_TYPE Release)
-  set(COMPILE_FLAGS "-O3")
-endif()
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_compile_options(${COMPILE_FLAGS})
+SET(CMAKE_CXX_FLAGS "-Wall")
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Ensure directories for generated files exist
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/cfg ${CMAKE_BINARY_DIR}/src/ddg ${CMAKE_BINARY_DIR}/src/ssa)
@@ -89,7 +81,8 @@ add_executable(cos_ssa src/main.cc)
 target_link_libraries(cos_ssa PRIVATE cos_ssa_lib)
 
 # Strip binary on Release
-if(NOT BUILD_DEBUG)
+string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
+if(CMAKE_BUILD_TYPE_UPPER STREQUAL "RELEASE")
   add_custom_command(TARGET cos_ssa POST_BUILD
     COMMAND ${CMAKE_STRIP} $<TARGET_FILE:cos_ssa>
   )
