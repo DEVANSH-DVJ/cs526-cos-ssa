@@ -13,7 +13,7 @@ if [[ -d "build" ]]; then
 else
     echo "Build directory does not exist. Creating..."
     mkdir -p build && cd build
-    cmake .. -DBUILD_DEBUG=OFF
+    cmake .. -DCMAKE_BUILD_TYPE=Release
 fi
 
 cmake --build . -j4
