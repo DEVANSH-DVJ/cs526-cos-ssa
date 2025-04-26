@@ -1,4 +1,7 @@
-#/bin/sh
+#!/bin/bash
+
+# Set the working directory
+cd "$(dirname "$0")"/..
 
 # Run the tests
 if [[ -f ./build/cos_ssa ]]; then
@@ -22,5 +25,6 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=ssa tests/7_orig.ssa
     ./build/cos_ssa --tool=ssa tests/7_exp.ssa
 else
-    echo "Compilation Failed!"
+    echo "Build not found. Please run 'make build' to build the project."
+    exit 1
 fi

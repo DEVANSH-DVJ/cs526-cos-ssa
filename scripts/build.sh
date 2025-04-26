@@ -1,10 +1,7 @@
-#/bin/sh
+#!/bin/bash
 
-# If the script is run with the argument "clean", it will remove the build directory.
-if [[ $1 == "clean" ]]; then
-    echo "Cleaning build directory..."
-    rm -rf build
-fi
+# Set the working directory
+cd "$(dirname "$0")"/..
 
 # Check if the build directory exists, build only new changes
 if [[ -d "build" ]]; then
