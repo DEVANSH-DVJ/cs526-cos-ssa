@@ -1,16 +1,6 @@
 .vscode
 
-*.o
-*.out
-*.output
-
-cos_ssa
-cfg.scan.*
-cfg.tab.*
-ssa.scan.*
-ssa.tab.*
-
-*.dot
-*.png
-
 build
+
+tests/*.dot
+tests/*.png
