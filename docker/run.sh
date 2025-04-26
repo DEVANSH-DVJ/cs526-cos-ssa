@@ -8,11 +8,11 @@ echo "Working directory: $(pwd)"
 docker image ls | grep cs526
 
 if [ $? -eq 1 ]; then
-    echo "No existing cs526 image was found. Please build the image first."
-    echo "Run the build script first: ./build.sh"
+    echo "No cs526 image found. Please build it before continuing."
+    echo "Run the build script first: ./docker/build.sh"
     exit 1
 else
-    echo "An existing cs526 image was found"
+    echo "Found an existing cs526 image. Proceeding to run the container..."
 fi
 
 docker run --name cs526 --rm -it -v "$(pwd)/..:/home/cs526/cos_ssa" cs526 bash
