@@ -3,19 +3,28 @@
 # Set the working directory
 cd "$(dirname "$0")"/..
 
-# Check if the build directory exists, build only new changes
+# Ensure build directory exists
 if [[ -d "build" ]]; then
-    echo "Build directory exists. Rebuiding only for new changes..."
-    cd build
+    echo "Build directory exists."
 else
     echo "Build directory does not exist. Creating..."
-    mkdir -p build && cd build
-    cmake .. -DCMAKE_BUILD_TYPE=Release
+    mkdir -p build
 fi
 
-cmake --build . -j4
+# (Re)generate Ninja build files out-of-source
+cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_COMPILER=clang++-14
+if [[ $? -ne 0 ]]; then
+    echo "CMake configuration failed!"
+    exit 1
+fi
+
+# Run the build
+ninja -C build -j4
 if [[ $? -ne 0 ]]; then
     echo "Build failed!"
     exit 1
 fi
-cd ..
+
+echo "Build succeeded."
