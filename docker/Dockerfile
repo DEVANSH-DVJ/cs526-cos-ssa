@@ -2,10 +2,17 @@ FROM ubuntu:jammy
 
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update && \
-  apt-get install -y clang-14 wget git && \
+  apt-get install -y wget git bash-completion && \
+  apt-get install -y lsb-release wget software-properties-common gnupg && \
   apt-get install -y build-essential && \
-  apt-get install -y make cmake ninja-build && \
-  apt-get install -y bison flex libbison-dev && \
+  apt-get install -y make cmake ninja-build
+
+RUN wget https://apt.llvm.org/llvm.sh && \
+  chmod +x llvm.sh && \
+  ./llvm.sh 19 && \
+  rm -f llvm.sh
+
+RUN apt-get install -y bison flex libbison-dev && \
   apt-get install -y graphviz && \
   apt-get clean -y && \
   rm -rf /var/lib/apt/lists/*
