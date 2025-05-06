@@ -2,8 +2,9 @@
 
     #include <list>
     #include <string>
+#include<iostream>
 
-    #include "headers.hh"
+    #include "../headers.hh"
 
     using namespace std;
 
@@ -12,12 +13,12 @@
 %}
 
 %option noyywrap
-%option noinput
 %option nounput
 %option prefix="cfg_"
 
 digit [0-9]
 letter [a-zA-Z]
+alphanum [0-9a-zA-Z]
 operator [-+*/]
 ignore [ \t\n]
 
@@ -44,20 +45,21 @@ ignore [ \t\n]
 "CALL" { return CFG_CALL; }
 "INPUT" { return CFG_INPUT; }
 "USEVAR" { return CFG_USEVAR; }
+"EMPTY" { return CFG_EMPTY_NODE; }
 
   /* Identifiers */
 
 "=" { return CFG_ASSIGN; }
 {operator} { cfg_lval.name = new string(cfg_text); return CFG_OP; }
 
-  /* Identifiers */
-
-{letter}+ { cfg_lval.name = new string(cfg_text); return CFG_ID; }
-
   /* Constants */
 
-{digit}+ { cfg_lval.value = atoi(cfg_text); return CFG_NUM; }
+("-")?{digit}+ { cfg_lval.value = atoi(cfg_text); return CFG_NUM; }
+
+  /* Identifiers */
+
+(("$")*("_")*(".")*{alphanum}("$")*("_")*(".")*)+ { cfg_lval.name = new string(cfg_text); return CFG_ID; }
 
   /* Rest */
 
-. { return CFG_UNKNOWN; }
+. { std::cout << "H\n"; return CFG_UNKNOWN; }

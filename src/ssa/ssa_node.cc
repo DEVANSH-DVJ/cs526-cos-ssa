@@ -1,4 +1,4 @@
-#include "headers.hh"
+#include "../headers.hh"
 
 using namespace std;
 
@@ -41,8 +41,8 @@ SSA_Node::SSA_Node(SSA_NodeType type, int node_id, string stmt,
 }
 
 SSA_Node::SSA_Node(SSA_NodeType type, int node_id) {
-  if (type != SSA_AssignNode) {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_AssignNode expected");
+  if (type != SSA_AssignNode && type != SSA_EmptyNode) {
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_AssignNode or SSA_EmptyNode expected");
   }
 
   this->type = type;
@@ -52,7 +52,7 @@ SSA_Node::SSA_Node(SSA_NodeType type, int node_id) {
   this->in_edges = new map<int, SSA_Edge *>();
   this->out_edges = new map<int, SSA_Edge *>();
 
-  this->stmt = "";
+  this->stmt = type == SSA_AssignNode ? "" : "EMPTY";
   this->callee_proc = "";
   this->metas = new map<int, SSA_Meta *>();
 }
@@ -73,6 +73,11 @@ SSA_Node::~SSA_Node() {
 SSA_NodeType SSA_Node::get_type() { return this->type; }
 
 int SSA_Node::get_node_id() { return this->node_id; }
+
+const std::string& SSA_Node::get_callee() {
+  CHECK_INVARIANT(this->type == SSA_CallNode, "Can't get callee of non call node")
+  return this->callee_proc;
+}
 
 string &SSA_Node::get_parent_proc() { return this->parent_proc; }
 
@@ -105,6 +110,27 @@ void SSA_Node::add_meta(SSA_Meta *meta) {
   CHECK_INVARIANT(this->metas->find(meta_id) == this->metas->end(),
                   "Meta already exists");
   this->metas->insert(make_pair(meta_id, meta));
+}
+
+void SSA_Node::make_empty() {
+  CHECK_INVARIANT(this->type == SSA_AssignNode, "Can not make an Assignment node empty");
+  this->type = SSA_EmptyNode;
+  this->stmt = "EMPTY";
+}
+
+std::map<int, SSA_Meta*>* SSA_Node::get_metas() {
+  CHECK_INVARIANT(metas != NULL, "Meta cannot be NULL");
+  return metas;
+}
+
+void SSA_Node::dump() {
+  if (this->type != SSA_AssignNode) {
+    *dot_fd << "\t" << this->node_id << "_1: " << this->stmt << ";\n";
+  } else {
+    for (auto pair : *this->metas) {
+      pair.second->dump();
+    }
+  }
 }
 
 void SSA_Node::visualize() {

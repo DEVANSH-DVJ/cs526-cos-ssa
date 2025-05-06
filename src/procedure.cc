@@ -21,6 +21,22 @@ Procedure::~Procedure() {
 
 string Procedure::get_name() { return this->name; }
 
+std::set<int> Procedure::get_cfg_nodes() {
+  std::set<int> res;
+  for (auto pair : *cfg_nodes) {
+    res.insert(pair.first);
+  }
+  return res;
+}
+
+std::set<int> Procedure::get_ssa_nodes() {
+  std::set<int> res;
+  for (auto pair : *ssa_nodes) {
+    res.insert(pair.first);
+  }
+  return res;
+}
+
 void Procedure::add_cfg_node(CFG_Node *node) {
   CHECK_INVARIANT(node != NULL, "CFG node cannot be NULL.");
   int node_id = node->get_node_id();
@@ -55,6 +71,51 @@ void Procedure::add_ssa_edge(SSA_Edge *edge) {
   this->ssa_edges->insert(make_pair(edge_id, edge));
 }
 
+std::set<std::string> Procedure::get_globals() {
+  std::set<std::string> res;
+  for (std::pair<int, CFG_Node*> pair : *cfg_nodes) {
+    for (std::string global : pair.second->get_globals()) {
+      res.insert(global);
+    }
+  }
+  return res;
+}
+
+int Procedure::get_start_node() {
+  for (auto pair : *cfg_nodes) {
+    if (pair.second->get_type() == CFG_NodeType::CFG_StartNode) {
+      return pair.first;
+    }
+  }
+  CHECK_INVARIANT(false, "Procedure must have a start node");
+  return 0;
+}
+
+int Procedure::get_end_node() {
+  for (auto pair : *cfg_nodes) {
+    if (pair.second->get_type() == CFG_NodeType::CFG_EndNode) {
+      return pair.first;
+    }
+  }
+  CHECK_INVARIANT(false, "Procedure must have an end node");
+  return 0;
+}
+
+void Procedure::dump_cfg() {
+  *dot_fd << "\n\n{\n";
+  for (auto pair : *cfg_nodes) {
+    *dot_fd << "\t" << pair.first << ": ";
+    pair.second->dump();
+    *dot_fd << ";\n";
+  }
+
+  *dot_fd << "\n";
+  for (auto pair : *cfg_edges) {
+    *dot_fd << "\t" << pair.first.first << "->" << pair.first.second << ";\n";
+  }
+  *dot_fd << '}';
+}
+
 void Procedure::visualize_cfg() {
   *dot_fd << "\n\tsubgraph cluster_" << this->name << " {\n";
   *dot_fd << "\t\tlabel = \"" << this->name << "\";\n";
@@ -70,6 +131,19 @@ void Procedure::visualize_cfg() {
   *dot_fd << "\t}\n";
 }
 
+void Procedure::dump_ssa() {
+  *dot_fd << "\n\n{\n";
+  for (auto pair : *ssa_nodes) {
+    pair.second->dump();
+  }
+
+  *dot_fd << "\n";
+  for (auto pair : *ssa_edges) {
+    *dot_fd << "\t" << pair.first.first << "->" << pair.first.second << ";\n";
+  }
+  *dot_fd << '}';
+}
+
 void Procedure::visualize_ssa() {
   *dot_fd << "\n\tsubgraph cluster_" << this->name << " {\n";
   *dot_fd << "\t\tlabel = \"" << this->name << "\";\n";
@@ -83,4 +157,9 @@ void Procedure::visualize_ssa() {
     it->second->visualize();
   }
   *dot_fd << "\t}\n";
+}
+
+void Procedure::forget_ssa() {
+  ssa_nodes->clear();
+  ssa_edges->clear();
 }

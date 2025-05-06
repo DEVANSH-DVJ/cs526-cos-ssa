@@ -1,4 +1,4 @@
-#include "headers.hh"
+#include "../headers.hh"
 
 using namespace std;
 
@@ -21,6 +21,16 @@ SSA_Meta::~SSA_Meta() {
 pair<int, int> SSA_Meta::get_meta_num() { return this->meta_num; }
 
 list<SSA_Stmt *> *SSA_Meta::get_stmts() { return this->stmts; }
+
+void SSA_Meta::dump() {
+  *dot_fd << "\t" << this->meta_num.first << '_' << this->meta_num.second << ':';
+  for (SSA_Stmt* stmt : *this->stmts) {
+    *dot_fd << ' ';
+    stmt->dump();
+    *dot_fd << ';';
+  }
+  *dot_fd << '\n';
+}
 
 void SSA_Meta::visualize() {
   for (list<SSA_Stmt *>::iterator it = this->stmts->begin();

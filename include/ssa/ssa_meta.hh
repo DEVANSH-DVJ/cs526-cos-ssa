@@ -27,6 +27,8 @@ public:
   std::list<SSA_Stmt *> *get_stmts();
 
   /* Helper functions */
+  // Dump the meta
+  void dump();
   // Visualize the meta
   void visualize();
 };

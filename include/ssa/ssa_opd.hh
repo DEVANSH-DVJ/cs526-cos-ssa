@@ -42,6 +42,8 @@ public:
   std::string &get_opd_var();
 
   /* Helper functions */
+  // Dump the opd
+  void dump();
   // Return the string rep
   std::string str();
 };

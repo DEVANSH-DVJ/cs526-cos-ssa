@@ -2,8 +2,10 @@
 #define _CFG_NODE_HH_
 
 #include <string>
+#include <vector>
 
 #include <map>
+#include <set>
 
 class CFG_Edge;
 class CFG_Opd;
@@ -15,6 +17,7 @@ typedef enum {
   CFG_EndNode,
   CFG_CallNode,
   CFG_AssignNode,
+  CFG_EmptyNode
 } CFG_NodeType;
 
 class CFG_Node {
@@ -53,6 +56,8 @@ public:
   std::string &get_parent_proc();
 
   /* Update functions */
+  // Set the node id
+  void set_node_id(int node_id);
   // Set the parent procedure
   void set_parent_proc(std::string parent_proc);
   // Add an in edge
@@ -60,7 +65,21 @@ public:
   // Add an out edge
   void add_out_edge(CFG_Edge *edge);
 
+  std::set<std::string> get_globals();
+  std::set<int> get_predecessors();
+  std::set<int> get_successors();
+
+  const std::string& get_op();
+  const std::string& get_def();
+  std::set<std::string> get_uses();
+  CFG_Opd* get_lopd();
+  std::pair<CFG_Opd*, CFG_Opd*> get_ropds();
+  std::vector<CFG_Opd*> get_rhs_operands();
+  const std::string& get_callee();
+
   /* Helper functions */
+  // Dump the node
+  void dump();
   // Visualize the node
   void visualize();
 };

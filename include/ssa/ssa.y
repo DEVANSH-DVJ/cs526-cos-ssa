@@ -5,7 +5,7 @@
 
   using namespace std;
 
-  #include "headers.hh"
+  #include "../headers.hh"
 
   extern int ssa_lex(void);
 
@@ -51,6 +51,8 @@
 %token SSA_USEVAR
 %token SSA_PHI
 
+%token SSA_EMPTYNODE
+
 %token SSA_ASSIGN
 %token <name> SSA_OP
 
@@ -74,6 +76,7 @@
 %type <ssa_node> InputNode
 %type <ssa_node> UsevarNode
 %type <ssa_node> ExprNode
+%type <ssa_node> EmptyNode
 %type <ssa_stmt> PhiStmt
 %type <ssa_opd_list> VarList
 
@@ -206,6 +209,10 @@ Node
     $$ = $1;
   }
   | ExprNode
+  {
+    $$ = $1;
+  }
+  | EmptyNode
   {
     $$ = $1;
   }
@@ -421,6 +428,14 @@ VarList
   {
     $$ = $1;
     $$->push_back($3);
+  }
+;
+
+EmptyNode
+  : MetaNum SSA_COLON SSA_EMPTYNODE SSA_EOS
+  {
+    SSA_Node *node = new SSA_Node(SSA_EmptyNode, $1->first);
+    $$ = node;
   }
 ;
 

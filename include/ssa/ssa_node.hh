@@ -15,6 +15,7 @@ typedef enum {
   SSA_EndNode,
   SSA_CallNode,
   SSA_AssignNode,
+  SSA_EmptyNode,
 } SSA_NodeType;
 
 class SSA_Node {
@@ -47,6 +48,9 @@ public:
   int get_node_id();
   // Get the parent procedure
   std::string &get_parent_proc();
+  const std::string& get_callee();
+  // Get metas
+  std::map<int, SSA_Meta*>* get_metas();
 
   /* Update functions */
   // Set the parent procedure
@@ -57,8 +61,12 @@ public:
   void add_out_edge(SSA_Edge *edge);
   // Add a meta
   void add_meta(SSA_Meta *meta);
+  // Changes an assign node to an empty node
+  void make_empty();
 
   /* Helper functions */
+  // Dump the node
+  void dump();
   // Visualize the node
   void visualize();
 };

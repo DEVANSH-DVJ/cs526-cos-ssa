@@ -1,6 +1,8 @@
-#include "headers.hh"
+#include "../headers.hh"
 
 using namespace std;
+
+extern fstream *dot_fd;
 
 SSA_Opd::SSA_Opd(SSA_OpdType type, pair<int, int> meta_num) {
   if (type != SSA_InputOpd && type != SSA_UsevarOpd) {
@@ -50,6 +52,30 @@ pair<int, int> SSA_Opd::get_meta_num() { return this->meta_num; }
 int SSA_Opd::get_opd_value() { return this->num_value; }
 
 string &SSA_Opd::get_opd_var() { return this->var_name; }
+
+void SSA_Opd::dump() {
+  switch (type) {
+    case (SSA_NumOpd):
+      *dot_fd << to_string(this->num_value);
+      break;
+    case (SSA_VarOpd):
+      *dot_fd << var_name << '_' << to_string(this->meta_num.first) << '_' <<
+             to_string(this->meta_num.second);
+      break;
+    case (SSA_PhiOpd):
+      *dot_fd << var_name << '_' << to_string(this->meta_num.first) << '_' <<
+             to_string(this->meta_num.second) << "_PHI";
+      break;
+    case (SSA_InputOpd):
+      *dot_fd << "INPUT";
+      break;
+    case (SSA_UsevarOpd):
+      *dot_fd << "USEVAR";
+      break;
+    default:
+      CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_OpdType unknown");
+  }
+}
 
 string SSA_Opd::str() {
   switch (type) {

@@ -1,9 +1,9 @@
 #ifndef _SSA_STMT_HH_
 #define _SSA_STMT_HH_
 
-#include <string>
-
 #include <list>
+#include <string>
+#include <vector>
 
 class SSA_Opd;
 
@@ -38,8 +38,15 @@ public:
   /* Get functions */
   // Get the statement type
   SSA_StmtType get_type();
+  // Dump the statement
+  void dump();
   // Get the statement
   std::string &get_stmt();
+
+  std::string& get_op();
+  SSA_Opd* get_lhs();
+  std::vector<SSA_Opd*> get_rhs();
+  std::list<SSA_Opd*>* get_phi_uses();
 };
 
 #endif

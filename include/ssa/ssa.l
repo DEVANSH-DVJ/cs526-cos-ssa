@@ -3,7 +3,7 @@
     #include <list>
     #include <string>
 
-    #include "headers.hh"
+    #include "../headers.hh"
 
     using namespace std;
 
@@ -12,7 +12,6 @@
 %}
 
 %option noyywrap
-%option noinput
 %option nounput
 %option prefix="ssa_"
 
@@ -48,6 +47,7 @@ ignore [ \t\n]
 "INPUT" { return SSA_INPUT; }
 "USEVAR" { return SSA_USEVAR; }
 "PHI" { return SSA_PHI; }
+"EMPTY" { return SSA_EMPTYNODE; }
 
   /* Identifiers */
 

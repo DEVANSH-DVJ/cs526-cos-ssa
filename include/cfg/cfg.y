@@ -3,7 +3,7 @@
   #include <iostream>
   #include <string>
 
-  #include "headers.hh"
+  #include "../headers.hh"
 
   using namespace std;
 
@@ -50,6 +50,8 @@
 %token <name> CFG_ID
 %token <value> CFG_NUM
 
+%token CFG_EMPTY_NODE
+
 %token CFG_UNKNOWN
 
 %type <proc> Proc
@@ -64,6 +66,7 @@
 %type <cfg_node> InputNode
 %type <cfg_node> UsevarNode
 %type <cfg_node> ExprNode
+%type <cfg_node> EmptyNode
 
 %type <cfg_edge> Edge
 
@@ -193,6 +196,10 @@ Node
   {
     $$ = $1;
   }
+  | EmptyNode
+  {
+    $$ = $1;
+  }
 ;
 
 CallNode
@@ -253,6 +260,16 @@ ExprNode
                                   $5,
                                   NULL);
 
+    program->add_cfg_node(node);
+
+    $$ = node;
+  }
+;
+
+EmptyNode
+  : CFG_NUM CFG_COLON CFG_EMPTY_NODE CFG_EOS
+  {
+    CFG_Node* node = new CFG_Node(CFG_EmptyNode, $1, "");
     program->add_cfg_node(node);
 
     $$ = node;
