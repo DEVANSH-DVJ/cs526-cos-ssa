@@ -68,31 +68,6 @@ llvm::GlobalVariable* get_global(SSA_Opd* operand, std::map<std::string, llvm::G
   return qdef_globals[operand->get_opd_var()];
 }
 
-llvm::CallInst* extract_ret_var_operand(llvm::Value* operand, int operand_num) {
-  if (llvm::isa<llvm::LoadInst>(operand)) { // Variable passed to a USEVAR
-    return nullptr;
-  }
-
-  llvm::Value* rhs;
-
-  if (llvm::StoreInst* store = llvm::dyn_cast<llvm::StoreInst>(operand)) {
-    rhs = store->getValueOperand();
-  } else if (llvm::ReturnInst* ret = llvm::dyn_cast<llvm::ReturnInst>(operand)) {
-    rhs = ret->getOperand(0);
-  } else {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Expected store or return inst");
-  }
-
-  llvm::CallInst* call;
-  if (operand_num == 0 && (call = llvm::dyn_cast<llvm::CallInst>(rhs))) {
-    return call;
-  } else if (llvm::Instruction* inst = llvm::dyn_cast<llvm::Instruction>(rhs)) {
-    return llvm::dyn_cast<llvm::CallInst>(inst->getOperand(operand_num));
-  }
-
-  return nullptr;
-}
-
 llvm::Value* get_value(SSA_Opd* operand, int operand_num, int node_num, llvm::Instruction* insert_before,
                        std::map<std::string, llvm::GlobalVariable*>& qdef_globals) {
   llvm::Type* int_type = llvm::IntegerType::get(module->getContext(), 32);
@@ -103,7 +78,7 @@ llvm::Value* get_value(SSA_Opd* operand, int operand_num, int node_num, llvm::In
       if (program->get_ddg_propagated_value({{operand->get_opd_var(), meta.first}, meta.second}, &value)) {
         return llvm::ConstantInt::get(int_type, value);
       }
-      if (llvm::CallInst* call = extract_ret_var_operand(program->get_llvm_node(node_num, true), operand_num)) {
+      if (llvm::CallInst* call = program->get_llvm_call_operand_at_node(node_num, operand_num)) {
         return call;
       }
       // Else fall down to the SSA_PhiOpd case

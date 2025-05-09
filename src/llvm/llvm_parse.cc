@@ -159,18 +159,20 @@ void mark_removable_inst(llvm::Instruction* inst, std::set<llvm::Value*>& remova
   mark_removable_operand(inst->getOperand(1), removable_uses);
 }
 
-void erase_removable_operand(llvm::Value* value) {
+void erase_removable_operand(llvm::Value* value, int operand_num) {
   llvm::LoadInst* load;
   if ((load = llvm::dyn_cast<llvm::LoadInst>(value)) && load->getNumUses() == 1) {
     llvm::Type* int_type = llvm::IntegerType::get(module->getContext(), 32);
     load->replaceAllUsesWith(llvm::ConstantInt::get(int_type, 0));
     load->eraseFromParent();
+  } else if (llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(value)) {
+    program->add_llvm_call_operand_at_node(node_num, operand_num, call);
   }
 }
 
 void erase_removable_rhs(llvm::Instruction* inst) {
-  erase_removable_operand(inst->getOperand(0));
-  erase_removable_operand(inst->getOperand(1));
+  erase_removable_operand(inst->getOperand(0), 0);
+  erase_removable_operand(inst->getOperand(1), 1);
   if (inst->getNumUses() == 1) {
     llvm::Type* int_type = llvm::IntegerType::get(module->getContext(), 32);
     inst->replaceAllUsesWith(llvm::ConstantInt::get(int_type, 0));
@@ -528,7 +530,7 @@ std::vector<std::pair<CFG_Node*, llvm::Value*>> split_node(CFG_Node* node, llvm:
         CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Expected a store or return instruction");
       }
       if (node->get_op() == "=") {
-        erase_removable_operand(value);
+        erase_removable_operand(operand, 0);
       } else {
         erase_removable_rhs(llvm::dyn_cast<llvm::Instruction>(operand));
       }
@@ -538,7 +540,7 @@ std::vector<std::pair<CFG_Node*, llvm::Value*>> split_node(CFG_Node* node, llvm:
   return {std::make_pair(node, value)};
 }
 
-void convert_to_cfg(SimpleProc& simple_proc, const DisjointSets& partitions, std::map<int, llvm::Value*>& node_to_llvm) {
+void convert_to_cfg(SimpleProc& simple_proc, const DisjointSets& partitions) {
   std::map<llvm::BasicBlock*, std::pair<int, int>> basic_blocks;
 
   Procedure* proc = new Procedure(simple_proc.proc_name);
@@ -546,11 +548,12 @@ void convert_to_cfg(SimpleProc& simple_proc, const DisjointSets& partitions, std
     int start_node_num = node_num;
     for (auto node : bb.nodes) {
       for (auto pair : split_node(node.first, node.second, partitions)) {
-        pair.first->set_node_id(node_num++);
+        pair.first->set_node_id(node_num);
         pair.first->set_parent_proc(simple_proc.proc_name);
         program->add_cfg_node(pair.first);
         proc->add_cfg_node(pair.first);
-        node_to_llvm[node_to_llvm.size() + 1] = pair.second;
+        program->map_node_to_llvm(node_num, pair.second);
+        ++node_num;
       }
     }
     basic_blocks[bb.bb] = {start_node_num, node_num - 1};
@@ -568,7 +571,7 @@ void convert_to_cfg(SimpleProc& simple_proc, const DisjointSets& partitions, std
   end_node->set_parent_proc(simple_proc.proc_name);
   program->add_cfg_node(end_node);
   proc->add_cfg_node(end_node);
-  node_to_llvm[node_to_llvm.size() + 1] = nullptr;
+  program->map_node_to_llvm(node_num, nullptr);
 
   for (auto pair : simple_proc.cfg_transitions) {
     int bb1_end = basic_blocks[pair.first].second;
@@ -594,7 +597,7 @@ void convert_to_cfg(SimpleProc& simple_proc, const DisjointSets& partitions, std
   program->push_proc(proc);
 }
 
-std::map<int, llvm::Value*> llvm_parse() {
+void llvm_parse() {
   GlobalInfo globals = get_globals(module);
   std::vector<SimpleProc> procs;
   for (llvm::Function& func : *module) {
@@ -606,11 +609,8 @@ std::map<int, llvm::Value*> llvm_parse() {
   }
 
   DisjointSets partitions = partition_globals(procs);
-  std::map<int, llvm::Value*> node_to_llvm;
   for (SimpleProc& proc : procs) {
-    convert_to_cfg(proc, partitions, node_to_llvm);
+    convert_to_cfg(proc, partitions);
   }
-
-  return node_to_llvm;
 }
 

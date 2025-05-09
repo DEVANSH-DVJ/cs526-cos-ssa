@@ -122,6 +122,10 @@ llvm::Value* Program::get_llvm_node(int node_id, bool abort_if_not_found) {
   return it->second;
 }
 
+llvm::CallInst* Program::get_llvm_call_operand_at_node(int node_id, int operand_num) {
+  return llvm_call_operands_for_node[std::make_pair(node_id, operand_num)];
+}
+
 void Program::add_proc(Procedure *proc) {
   CHECK_INVARIANT(proc != NULL, "Procedure cannot be NULL.");
   string name = proc->get_name();
@@ -179,7 +183,15 @@ void Program::add_ssa_edge(SSA_Edge *edge) {
   this->ssa_edges->insert(make_pair(edge_id, edge));
 }
 
-void Program::parse_cfg_from_llvm() { llvm_nodes = llvm_parse(); }
+void Program::map_node_to_llvm(int node, llvm::Value* value) {
+  llvm_nodes[node] = value;
+}
+
+void Program::add_llvm_call_operand_at_node(int node, int operand_num, llvm::CallInst* call) {
+  llvm_call_operands_for_node[std::make_pair(node, operand_num)] = call;
+}
+
+void Program::parse_cfg_from_llvm() { llvm_parse(); }
 
 void Program::parse_cfg() { cfg_parse(); }
 

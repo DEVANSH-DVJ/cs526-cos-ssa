@@ -8,6 +8,7 @@
 #include <llvm/IR/Value.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/SourceMgr.h>
+#include <llvm/IR/InstrTypes.h>
 
 #include <list>
 #include <map>
@@ -61,6 +62,7 @@ class Program {
   llvm::LLVMContext context;
   llvm::SMDiagnostic err;
   std::map<int, llvm::Value*> llvm_nodes;
+  std::map<std::pair<int, int>, llvm::CallInst*> llvm_call_operands_for_node;
 
   /* Helper functions */
   // Parse CFG graph from a file
@@ -115,6 +117,7 @@ public:
   SSA_Node *get_ssa_node(int node_id, bool abort_if_not_found);
   // Get LLVM node by id
   llvm::Value* get_llvm_node(int node_id, bool abort_if_not_found);
+  llvm::CallInst* get_llvm_call_operand_at_node(int node_id, int operand_num);
 
   /* Update functions */
   // Add a procedure
@@ -129,6 +132,9 @@ public:
   void add_ssa_node(SSA_Node *node);
   // Add a SSA edge
   void add_ssa_edge(SSA_Edge *edge);
+
+  void map_node_to_llvm(int node, llvm::Value* value);
+  void add_llvm_call_operand_at_node(int node, int operand_num, llvm::CallInst* call);
 
   std::set<std::string> get_globals();
   std::set<QDef> get_ddg_nodes();
