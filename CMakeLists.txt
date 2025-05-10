@@ -8,23 +8,26 @@ SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Ensure directories for generated files exist
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/cfg ${CMAKE_BINARY_DIR}/src/ddg ${CMAKE_BINARY_DIR}/src/ssa)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/cfg ${CMAKE_BINARY_DIR}/include/ddg ${CMAKE_BINARY_DIR}/include/ssa)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/cfg ${CMAKE_BINARY_DIR}/src/ddg ${CMAKE_BINARY_DIR}/src/ssa ${CMAKE_BINARY_DIR}/src/llvm)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/cfg ${CMAKE_BINARY_DIR}/include/ddg ${CMAKE_BINARY_DIR}/include/ssa ${CMAKE_BINARY_DIR}/include/llvm)
 
 # Public headers
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/cfg)
 include_directories(${PROJECT_SOURCE_DIR}/include/ddg)
 include_directories(${PROJECT_SOURCE_DIR}/include/ssa)
+include_directories(${PROJECT_SOURCE_DIR}/include/llvm)
 
 # Include generated parser headers
 include_directories(${CMAKE_BINARY_DIR}/include/cfg)
 include_directories(${CMAKE_BINARY_DIR}/include/ddg)
 include_directories(${CMAKE_BINARY_DIR}/include/ssa)
+include_directories(${CMAKE_BINARY_DIR}/include/llvm)
 
 # Flex & Bison
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
+find_package(LLVM REQUIRED CONFIG)
 
 # CFG parser: generate source + defines header in build/include/cfg
 BISON_TARGET(CFG_PARSER
@@ -54,6 +57,7 @@ FLEX_TARGET(SSA_SCANNER
 file(GLOB_RECURSE CORE_SRC
     src/*.cc
 )
+
 # Exclude generated parser sources
 list(REMOVE_ITEM CORE_SRC
     src/cfg/cfg.scan.cc
@@ -61,6 +65,7 @@ list(REMOVE_ITEM CORE_SRC
     src/ssa/ssa.scan.cc
     src/ssa/ssa.tab.cc
 )
+
 # Add generated parser sources
 list(APPEND CORE_SRC
     ${BISON_CFG_PARSER_OUTPUTS}
@@ -76,14 +81,17 @@ target_include_directories(cos_ssa_lib PUBLIC
     ${CMAKE_BINARY_DIR}/include
 )
 
+include_directories(${LLVM_INCLUDE_DIRS})
+
 # Main executable
 add_executable(cos_ssa src/main.cc)
-target_link_libraries(cos_ssa PRIVATE cos_ssa_lib)
+target_link_libraries(cos_ssa PRIVATE cos_ssa_lib ${LLVM_LIBRARIES})
 
 # Strip binary on Release
 string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
+
 if(CMAKE_BUILD_TYPE_UPPER STREQUAL "RELEASE")
-  add_custom_command(TARGET cos_ssa POST_BUILD
-    COMMAND ${CMAKE_STRIP} $<TARGET_FILE:cos_ssa>
-  )
+    add_custom_command(TARGET cos_ssa POST_BUILD
+        COMMAND ${CMAKE_STRIP} $<TARGET_FILE:cos_ssa>
+    )
 endif()
