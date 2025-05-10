@@ -29,9 +29,7 @@ std::string func_ret_to_global(llvm::Function* func) {
 }
 
 bool is_usable_func(llvm::Function* func) {
-  // Get other generated code (like templates), use return !func->isDeclaration();
-  /*return !func->isDeclaration();*/
-  return !(func->isDeclaration() || func->getName().starts_with("_Z") || func->getName().starts_with("__") || func->getName().starts_with("_GLOBAL__"));
+  return !func->isDeclaration();
 }
 
 std::map<llvm::BasicBlock*, std::set<llvm::BasicBlock*>> construct_llvm_cfg(llvm::Function* func) {
@@ -530,7 +528,9 @@ std::vector<std::pair<CFG_Node*, llvm::Value*>> split_node(CFG_Node* node, llvm:
         CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Expected a store or return instruction");
       }
       if (node->get_op() == "=") {
-        erase_removable_operand(operand, 0);
+        if (node->get_rhs_operands()[0]->get_type() != CFG_OpdType::CFG_InputOpd) {
+          erase_removable_operand(operand, 0);
+        }
       } else {
         erase_removable_rhs(llvm::dyn_cast<llvm::Instruction>(operand));
       }

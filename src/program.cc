@@ -363,7 +363,6 @@ void Program::dump_llvm() {
   llvm_dump();
 }
 
-constexpr int MAX_PARTITION_SIZE = 10;
 std::set<std::string> create_partition(std::set<std::string>& globals,
                                        std::map<std::string, std::set<std::string>>& interactions) {
   CHECK_INVARIANT(globals.size() > 0, "Cannot partition empty globals");

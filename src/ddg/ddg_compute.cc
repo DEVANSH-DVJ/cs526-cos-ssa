@@ -27,8 +27,8 @@ void ddg_construct() {
   for (const std::string& var_name : program->get_globals()) {
     CFG_Opd opd = CFG_Opd(CFG_OpdType::CFG_VarOpd, var_name);
     if (program->is_in_cur_partition(&opd)) {
-      rd_in[{start_main, default_context}].insert({var_name, 0, default_context});
-      program->add_ddg_node({var_name, 0, default_context});
+      rd_in[{start_main, default_context}].insert({{var_name, 0}, default_context});
+      program->add_ddg_node({{var_name, 0}, default_context});
     }
   }
   std::map<QNode, std::set<QDef>> rd_out;
