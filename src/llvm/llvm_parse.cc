@@ -1,4 +1,4 @@
-#include "../headers.hh"
+#include "headers.hh"
 
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/IR/LLVMContext.h>
@@ -613,4 +613,3 @@ void llvm_parse() {
     convert_to_cfg(proc, partitions);
   }
 }
-

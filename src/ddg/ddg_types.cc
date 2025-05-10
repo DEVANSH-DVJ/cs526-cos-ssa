@@ -1,4 +1,4 @@
-#include "../headers.hh"
+#include "headers.hh"
 
 bool Def::operator==(const Def& other) const {
   return var_name == other.var_name && node == other.node;

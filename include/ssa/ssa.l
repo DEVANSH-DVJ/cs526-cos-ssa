@@ -3,7 +3,7 @@
     #include <list>
     #include <string>
 
-    #include "../headers.hh"
+    #include "headers.hh"
 
     using namespace std;
 
@@ -12,6 +12,7 @@
 %}
 
 %option noyywrap
+%option noinput
 %option nounput
 %option prefix="ssa_"
 

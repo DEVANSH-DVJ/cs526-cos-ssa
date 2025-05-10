@@ -1,5 +1,4 @@
-#include "../headers.hh"
-#include "ddg_types.hh"
+#include "headers.hh"
 
 #include <map>
 #include <queue>

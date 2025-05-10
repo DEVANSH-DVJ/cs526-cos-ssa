@@ -1,5 +1,4 @@
-#include "cfg_node.hh"
-#include "../headers.hh"
+#include "headers.hh"
 
 using namespace std;
 

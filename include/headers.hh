@@ -5,12 +5,12 @@
 #include "procedure.hh"
 #include "program.hh"
 
+#include "llvm/llvm_compute.hh"
+#include "llvm/llvm_parse.hh"
+
 #include "cfg/cfg_edge.hh"
 #include "cfg/cfg_node.hh"
 #include "cfg/cfg_opd.hh"
-
-#include "llvm/llvm_compute.hh"
-#include "llvm/llvm_parse.hh"
 
 #include "ddg/ddg_compute.hh"
 #include "ddg/ddg_context.hh"

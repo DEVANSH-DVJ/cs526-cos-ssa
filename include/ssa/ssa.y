@@ -5,7 +5,7 @@
 
   using namespace std;
 
-  #include "../headers.hh"
+  #include "headers.hh"
 
   extern int ssa_lex(void);
 

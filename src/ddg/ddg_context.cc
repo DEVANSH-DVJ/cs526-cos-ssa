@@ -1,4 +1,4 @@
-#include "../headers.hh"
+#include "headers.hh"
 
 #include <queue>
 #include <string>

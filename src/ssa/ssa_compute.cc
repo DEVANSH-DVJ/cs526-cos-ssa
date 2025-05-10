@@ -1,5 +1,4 @@
-#include "ssa_compute.hh"
-#include "../headers.hh"
+#include "headers.hh"
 
 extern Program* program;
 
