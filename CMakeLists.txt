@@ -81,11 +81,17 @@ target_include_directories(cos_ssa_lib PUBLIC
     ${CMAKE_BINARY_DIR}/include
 )
 
-include_directories(${LLVM_INCLUDE_DIRS})
+if(LLVM_FOUND)
+    include_directories(${LLVM_INCLUDE_DIRS})
+    add_definitions(${LLVM_DEFINITIONS})
+    llvm_map_components_to_libnames(LLVM_LIBRARIES support core irreader)
 
-# Main executable
-add_executable(cos_ssa src/main.cc)
-target_link_libraries(cos_ssa PRIVATE cos_ssa_lib ${LLVM_LIBRARIES})
+    # Main executable
+    add_executable(cos_ssa src/main.cc)
+    target_link_libraries(cos_ssa PRIVATE cos_ssa_lib ${LLVM_LIBRARIES})
+else()
+    message(FATAL_ERROR "LLVM not found.")
+endif()
 
 # Strip binary on Release
 string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
