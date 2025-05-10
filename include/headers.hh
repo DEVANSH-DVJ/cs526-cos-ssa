@@ -14,8 +14,6 @@
 
 #include "ddg/ddg_compute.hh"
 #include "ddg/ddg_context.hh"
-#include "ddg/ddg_edge.hh"
-#include "ddg/ddg_node.hh"
 #include "ddg/ddg_types.hh"
 
 #include "ssa/ssa_compute.hh"
