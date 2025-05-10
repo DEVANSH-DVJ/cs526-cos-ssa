@@ -24,6 +24,9 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=ssa tests/6.ssa
     ./build/cos_ssa --tool=ssa tests/7_orig.ssa
     ./build/cos_ssa --tool=ssa tests/7_exp.ssa
+
+    # E2E Tests
+    ./build/cos_ssa --tool=cfg-to-ssa tests/9.cfg
 else
     echo "Build not found. Please run 'make build' to build the project."
     exit 1
