@@ -14,6 +14,7 @@ RUN wget https://apt.llvm.org/llvm.sh && \
 
 RUN apt-get install -y bison flex libbison-dev && \
   apt-get install -y graphviz && \
+  apt-get install -y zlib1g-dev libzstd-dev && \
   apt-get clean -y && \
   rm -rf /var/lib/apt/lists/*
 
