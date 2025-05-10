@@ -329,8 +329,8 @@ void Program::dump_ssa() {
   }
   *dot_fd << ";";
 
-  for (auto pair : *procedures) {
-    pair.second->dump_ssa();
+  for (Procedure* proc : *procs) {
+    proc->dump_ssa();
   }
 
   dot_fd->close();
