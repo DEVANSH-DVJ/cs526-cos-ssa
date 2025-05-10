@@ -230,6 +230,17 @@ CallNode
   }
 ;
 
+EmptyNode
+  : MetaNum SSA_COLON SSA_EMPTYNODE SSA_EOS
+  {
+    SSA_Node *node = new SSA_Node(SSA_EmptyNode, $1->first);
+
+    program->add_ssa_node(node);
+
+    $$ = node;
+  }
+;
+
 InputNode
   : MetaNum SSA_COLON Var SSA_ASSIGN SSA_INPUT SSA_EOS
   {
@@ -250,7 +261,23 @@ InputNode
 ;
 
 UsevarNode
-  : MetaNum SSA_COLON SSA_USEVAR SSA_ASSIGN Var SSA_EOS
+  : MetaNum SSA_COLON SSA_USEVAR SSA_ASSIGN SSA_NUM SSA_EOS
+  {
+    SSA_Node *node = new SSA_Node(SSA_AssignNode, $1->first);
+
+    SSA_Stmt *stmt = new SSA_Stmt(SSA_AssignStmt, "=",
+                                  new SSA_Opd(SSA_UsevarOpd, *$1),
+                                  new SSA_Opd(SSA_NumOpd, $5),
+                                  NULL);
+
+    SSA_Meta *meta = new SSA_Meta(*$1, new list<SSA_Stmt *>({stmt}));
+
+    node->add_meta(meta);
+    program->add_ssa_node(node);
+
+    $$ = node;
+  }
+  | MetaNum SSA_COLON SSA_USEVAR SSA_ASSIGN Var SSA_EOS
   {
     SSA_Node *node = program->get_ssa_node($1->first, false);
     bool new_node = false;
@@ -428,14 +455,6 @@ VarList
   {
     $$ = $1;
     $$->push_back($3);
-  }
-;
-
-EmptyNode
-  : MetaNum SSA_COLON SSA_EMPTYNODE SSA_EOS
-  {
-    SSA_Node *node = new SSA_Node(SSA_EmptyNode, $1->first);
-    $$ = node;
   }
 ;
 
