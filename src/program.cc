@@ -241,8 +241,8 @@ void Program::dump_cfg() {
   }
   *dot_fd << ";";
 
-  for (auto pair : *procedures) {
-    pair.second->dump_cfg();
+  for (Procedure* proc : *procs) {
+    proc->dump_cfg();
   }
 
   dot_fd->close();
@@ -271,6 +271,7 @@ void Program::visualize_cfg() {
   }
 }
 
+// Prints out a QDef in the form "var_node_context [= value]" to stdout
 void print_qdef(QDef node, const std::map<QDef, int>& propagated_values) {
   std::cout << node.def.var_name + '_' + std::to_string(node.def.node) + '_' + std::to_string(node.context);
   auto it = propagated_values.find(node);
@@ -283,18 +284,21 @@ void Program::visualize_ddg() {
   DDG& ddg = ddgs[cur_partition];
   std::cout << ddg.context_table.to_string() << '\n';
 
-  for (auto pair : ddg.context_transitions) {
-    for (auto subpair : pair.second) {
-      std::cout << "Context transition at node " << pair.first << ": " << subpair.first << " -> " << subpair.second << '\n';
+  // Print out the contexts
+  for (auto& [node, context_map] : ddg.context_transitions) {
+    for (auto [to_context, from_context] : context_map) {
+      std::cout << "Context transition at node " << node << ": " << to_context << " -> " << from_context << '\n';
     }
   }
   std::cout << '\n';
 
   std::vector<QDef> nodes (ddg.nodes.begin(), ddg.nodes.end());
+  // Order qdefs for consistent printing
   std::sort(nodes.begin(), nodes.end(), [](QDef l, QDef r) {
     return l.def.node < r.def.node;
   });
 
+  // Print out the qdefs and their dependencies
   for (QDef node : nodes) {
     print_qdef(node, ddg.propagated_values);
     std::cout << " <- ";
@@ -363,6 +367,8 @@ void Program::dump_llvm() {
   llvm_dump();
 }
 
+// Creates a subgroup of globals that forms a connected component
+// in the interactions graph
 std::set<std::string> create_partition(std::set<std::string>& globals,
                                        std::map<std::string, std::set<std::string>>& interactions) {
   CHECK_INVARIANT(globals.size() > 0, "Cannot partition empty globals");
@@ -373,6 +379,7 @@ std::set<std::string> create_partition(std::set<std::string>& globals,
   worklist.push(*it);
   partition.insert(*it);
   globals.erase(it);
+  // Loop over all reachible nodes and add them to the partition
   while (!worklist.empty()) {
     std::string cur = worklist.front();
     worklist.pop();
@@ -392,11 +399,12 @@ std::set<std::string> create_partition(std::set<std::string>& globals,
 void Program::partition_globals(bool single_partition) {
   std::set<std::string> globals;
   std::map<std::string, std::set<std::string>> interactions;
-  for (auto pair : *cfg_nodes) {
-    if (pair.second->get_type() != CFG_NodeType::CFG_AssignNode) {
+  // Create a graph of globals where an edge represents a dependency between two globals
+  for (auto [_, cfg_node] : *cfg_nodes) {
+    if (cfg_node->get_type() != CFG_NodeType::CFG_AssignNode) {
       continue;
     }
-    CFG_Opd* lopd = pair.second->get_lopd();
+    CFG_Opd* lopd = cfg_node->get_lopd();
     std::string def = "";
     if (lopd->get_type() == CFG_OpdType::CFG_VarOpd) {
       def = lopd->get_opd_var();
@@ -404,7 +412,7 @@ void Program::partition_globals(bool single_partition) {
         globals.insert(def);
       }
     }
-    for (const std::string& use : pair.second->get_uses()) {
+    for (const std::string& use : cfg_node->get_uses()) {
       globals.insert(use);
       if (def != "" && def != use) {
         if (def == use) {
@@ -422,9 +430,11 @@ void Program::partition_globals(bool single_partition) {
     return;
   }
 
+  // Construct the partitions from the interactions graph
   while (!globals.empty()) {
     partitions.push_back(create_partition(globals, interactions));
   }
+  // Create a DDG for each partition
   ddgs.resize(partitions.size());
 }
 
@@ -447,11 +457,14 @@ bool Program::is_part_of_other_partition(int node) {
   }
   CFG_Node* cfg_node = get_cfg_node(node, true);
   if (cfg_node->get_type() != CFG_AssignNode) {
+    // Non assign nodes can be processed by any partition
     return false;
   }
   if (cfg_node->get_lopd()->get_type() == CFG_OpdType::CFG_VarOpd) {
+    // Return whether this global variable is not part of this partition
     return partitions[cur_partition].find(cfg_node->get_def()) == partitions[cur_partition].end();
   }
+  // This is a USEVAR: return whether it depends on globals in a different partition
   for (const std::string& def : cfg_node->get_uses()) {
     if (partitions[cur_partition].find(def) == partitions[cur_partition].end()) {
       return true;
@@ -486,11 +499,13 @@ bool Program::create_ddg_transition(QNode from_qnode, const Context& to_context)
   DDG& ddg = ddgs[cur_partition];
   auto it = ddg.context_transitions[from_qnode.node].find(from_qnode.context);
   if (it != ddg.context_transitions[from_qnode.node].end()) {
+    // We are updating an existing transition
     int new_context = it->second;
     bool updated = ddg.context_table.update_context(&new_context, to_context);
     if (new_context != it->second) {
       // If we have a new context, the old context is still in use
       ddg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
+      // Get rid of any existing reverse transition and set the new reverse transition
       auto transitionIt = ddg.reverse_context_transitions[it->second].find(from_qnode);
       if (transitionIt != ddg.reverse_context_transitions[it->second].end()) {
         ddg.reverse_context_transitions[it->second].erase(ddg.reverse_context_transitions[it->second].find(from_qnode));
@@ -500,6 +515,7 @@ bool Program::create_ddg_transition(QNode from_qnode, const Context& to_context)
     return updated;
   }
 
+  // This is a new context transition, so add it to the context table
   int context = ddg.context_table.insert_context(to_context);
   ddg.context_transitions[from_qnode.node][from_qnode.context] = context;
   ddg.reverse_context_transitions[context].insert(from_qnode);
@@ -554,10 +570,12 @@ void Program::remove_ddg_node(QDef node) {
   CHECK_INVARIANT(ddg.nodes.find(node) != ddg.nodes.end(), "QDef is not an existing node");
 
   ddg.nodes.erase(ddg.nodes.find(node));
+  // Erase any edges using this node as a src
   for (QDef dest : ddg.edges[node]) {
     ddg.reverse_edges[dest].erase(ddg.reverse_edges[dest].find(node));
   }
   ddg.edges.erase(ddg.edges.find(node));
+  // Erase any edges using this node as a dest
   for (QDef src : ddg.reverse_edges[node]) {
     ddg.edges[src].erase(ddg.edges[src].find(node));
   }
@@ -618,6 +636,8 @@ void Program::run() {
     this->partition_globals();
 
     this->init_ssa();
+    // For each partition, construct its DDG and use that DDG to fill in
+    // the corresponding parts of the SSA graph
     for (cur_partition = 0; cur_partition < partitions.size(); ++cur_partition) {
       this->construct_ddg();
       this->propagate_ddg_constants();

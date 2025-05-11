@@ -45,11 +45,13 @@ class Program {
     std::map<QDef, std::set<QDef>> reverse_edges;
     std::map<QDef, int> propagated_values;
     std::set<QDef> dead_qdefs;
-    std::map<int, std::map<int, int>> context_transitions;
+    std::map<int, std::map<int, int>> context_transitions; // From node, from context, to context
     std::map<int, std::set<QNode>> reverse_context_transitions;
   };
+  /* A vector of DDGs for each global partition */
   std::vector<DDG> ddgs;
 
+  /* The global partitions */
   std::vector<std::set<std::string>> partitions;
   size_t cur_partition;
 
@@ -100,6 +102,11 @@ class Program {
   // Dump the LLVM IR to a file
   void dump_llvm();
 
+  // Partition globals from the CFG
+  // Partitions are defined as connected components
+  // of variables that interact with each other
+  // If single_partition = true, all globals will be placed into
+  // the same partition instead
   void partition_globals(bool single_partition = false);
 public:
   /* Constructors and Destructor */
@@ -133,32 +140,55 @@ public:
   // Add a SSA edge
   void add_ssa_edge(SSA_Edge *edge);
 
+  // Maps a node to a particular LLVM value
   void map_node_to_llvm(int node, llvm::Value* value);
+  // Maps one of the operands of a node to a particular CallInst
   void add_llvm_call_operand_at_node(int node, int operand_num, llvm::CallInst* call);
 
+  // Get all global variables
   std::set<std::string> get_globals();
+
+  /* DDG function: these all operate on the DDG corresponding to the current partition */
+  // DDG getters
   std::set<QDef> get_ddg_nodes();
   std::set<QDef> get_ddg_incoming(QDef node);
   std::set<QDef> get_ddg_outgoing(QDef node);
+  // Creates a context transition in the DDG
+  // Returns true if a new transition was created
+  // or if an existing transition changed (the context was updated)
   bool create_ddg_transition(QNode from_qnode, const Context& to_context);
+  // Get a from context, to context transition pair at a particular node
+  // This may be an end iterator
   std::map<int, int>::iterator get_ddg_transition(QNode qnode);
+  // Gets a from context, to context transition map at a particular node
   std::map<int, int>& get_ddg_transitions(int node);
+  // Gets the end iterator for context transitions from a particular node
   std::map<int, int>::iterator ddg_transitions_end(int node);
+  // DDG reverse transition getters
   std::map<int, std::set<QNode>>::iterator get_ddg_reverse_transitions(int context);
   std::map<int, std::set<QNode>>::iterator ddg_reverse_transitions_end();
+  // Returns whether qdef has a known value
+  // If true, value is updated to be that value
   bool get_ddg_propagated_value(QDef qdef, int* value);
+  // Returns whether a qdef is dead and can be removed
   bool ddg_is_dead(QDef qdef);
+  // Registers a context and returns its integer representation
   int insert_ddg_context(Context context);
+  // Add / remove functions for the DDG
   void add_ddg_node(QDef node);
   void remove_ddg_node(QDef node);
   void add_ddg_edge(QDef src, QDef dest);
   void remove_ddg_edge(QDef src, QDef dest);
 
+  // Functions for working with the different global partitions
   void set_cur_partition(int partition);
   int get_num_partitions();
+  // Returns true if opd represents a variable in the current partition
   bool is_in_cur_partition(CFG_Opd* opd);
+  // Returns true if this node should be processed by a different partition
   bool is_part_of_other_partition(int node);
 
+  // Reads the LLVM file into a Module
   void llvm_init_module();
 
   // Cleanup

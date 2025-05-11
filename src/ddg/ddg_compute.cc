@@ -8,12 +8,14 @@
 extern Program* program;
 
 extern std::string USEVAR;
+// Creates a qdef for a cfg_node at a qnode, accounting for whether
+// the def is in the current partition
 QDef gen_qdef(CFG_Node* cfg_node, QNode qnode) {
   const std::string& def = cfg_node->get_def();
   if (!program->is_in_cur_partition(cfg_node->get_lopd())) {
-    return {{USEVAR, qnode.node}, 1};
+    return {{USEVAR, qnode.node}, 1}; // All USEVARs have the same context
   } else if (cfg_node->get_rhs_operands()[0]->get_type() == CFG_OpdType::CFG_InputOpd) {
-    return {{def, qnode.node}, 1};
+    return {{def, qnode.node}, 1}; // All INPUTs have the same context
   }
   return {{def, qnode.node}, qnode.context};
 }
@@ -24,6 +26,7 @@ void ddg_construct() {
   int start_main = program->get_proc("main")->get_start_node();
   std::map<QNode, std::set<QDef>> rd_in;
   rd_in[{start_main, default_context}] = std::set<QDef>();
+  // Add in uninitialized versions of variables to the DDG
   for (const std::string& var_name : program->get_globals()) {
     CFG_Opd opd = CFG_Opd(CFG_OpdType::CFG_VarOpd, var_name);
     if (program->is_in_cur_partition(&opd)) {
@@ -35,9 +38,10 @@ void ddg_construct() {
 
   std::queue<QNode> worklist;
   worklist.push({start_main, default_context});
-  std::set<QNode> in_list;
+  std::set<QNode> in_list; // Keeps duplicates out of the worklist
   in_list.insert({start_main, default_context});
 
+  // Update the dataflow sets
   while (!worklist.empty()) {
     QNode cur_qnode = worklist.front();
     worklist.pop();
@@ -46,6 +50,7 @@ void ddg_construct() {
     std::set<QDef> orig_rd_out = rd_out[cur_qnode];
 
     CFG_Node* node = program->get_cfg_node(cur_qnode.node, true);
+    // Update rd_in for the current node
     if (node->get_type() == CFG_NodeType::CFG_StartNode) {
       auto it = program->get_ddg_reverse_transitions(cur_qnode.context);
       if (it != program->ddg_reverse_transitions_end()) {
@@ -63,6 +68,7 @@ void ddg_construct() {
       }
     }
 
+    // Add incoming DDG edges for the current node
     if (node->get_type() == CFG_NodeType::CFG_AssignNode) {
       std::set<std::string> uses = node->get_uses();
       QDef new_qdef = gen_qdef(node, cur_qnode);
@@ -78,14 +84,17 @@ void ddg_construct() {
     if (node->get_type() == CFG_NodeType::CFG_CallNode) {
       auto it = program->get_ddg_transition(cur_qnode);
       if (it != program->ddg_transitions_end(cur_qnode.node)) {
+        // Use the existing context transition to update rd_out
         int end_node = program->get_proc(node->get_callee())->get_end_node();
         for (QDef qdef : rd_out[{end_node, it->second}]) {
           rd_out[cur_qnode].insert(qdef);
         }
       }
 
+      // Update the cotext transition
       updated_transition = program->create_ddg_transition(cur_qnode, Context::gen_context(node->get_callee(), rd_in[cur_qnode]));
     } else {
+      // Update rd_out
       rd_out[cur_qnode] = rd_in[cur_qnode];
       if (node->get_type() == CFG_NodeType::CFG_AssignNode && program->is_in_cur_partition(node->get_lopd())) {
         std::string killed_var = node->get_def();
@@ -108,7 +117,7 @@ void ddg_construct() {
     }
 
     if (updated_transition) {
-      // Update at start of call
+      // Update at start of called procedure
       int start_node = program->get_proc(node->get_callee())->get_start_node();
       auto it = program->get_ddg_transition(cur_qnode);
       if (it != program->ddg_transitions_end(cur_qnode.node)) {
@@ -121,7 +130,7 @@ void ddg_construct() {
 
     if (rd_out[cur_qnode] != orig_rd_out) {
       if (node->get_type() == CFG_NodeType::CFG_EndNode) {
-        // Update at return from call
+        // Update any nodes that are transitioned to when this procedure returns
         auto it = program->get_ddg_reverse_transitions(cur_qnode.context);
         if (it != program->ddg_reverse_transitions_end()) {
           for (QNode qnode : it->second) {
@@ -132,6 +141,7 @@ void ddg_construct() {
           }
         }
       } else {
+        // Update all successors
         for (int succ : node->get_successors()) {
           if (in_list.find({succ, cur_qnode.context}) == in_list.end()) {
             worklist.push({succ, cur_qnode.context});
@@ -143,6 +153,8 @@ void ddg_construct() {
   }
 }
 
+// Returns whether an RHS opd has a known value at qdef
+// If true, opd_value is set to the known value
 bool get_operand_value(CFG_Opd* opd, int* opd_value, QDef qdef, std::map<QDef, int>& propagated_values) {
   switch (opd->get_type()) {
     case CFG_OpdType::CFG_NumOpd:
@@ -150,6 +162,8 @@ bool get_operand_value(CFG_Opd* opd, int* opd_value, QDef qdef, std::map<QDef, i
       return true;
     case CFG_OpdType::CFG_VarOpd: {
       bool found = false;
+      // Loop over all all incoming qdefs that represent opd and see if they
+      // are all known to be the same value
       for (QDef dependency : program->get_ddg_incoming(qdef)) {
         if (dependency.def.var_name == opd->get_opd_var()) {
           auto it = propagated_values.find(dependency);
@@ -165,6 +179,8 @@ bool get_operand_value(CFG_Opd* opd, int* opd_value, QDef qdef, std::map<QDef, i
       }
 
       if (found) {
+        // Since there is a known value for this opd, remove all incoming qdef edges
+        // where the src is this opd
         for (QDef incoming : program->get_ddg_incoming(qdef)) {
           if (incoming.def.var_name == opd->get_opd_var()) {
             program->remove_ddg_edge(incoming, qdef);
@@ -178,8 +194,11 @@ bool get_operand_value(CFG_Opd* opd, int* opd_value, QDef qdef, std::map<QDef, i
   }
 }
 
+// Returns whether this qdef has a known value and this value has not been previously tracked
+// If true, propagated_values is updated to map the qdef to its known value
 bool propagate_value(QDef qdef, std::map<QDef, int>& propagated_values) {
   if (qdef.def.node == 0 || propagated_values.find(qdef) != propagated_values.end()) {
+    // Uninitialized variable or already propagated
     return false;
   }
 
@@ -187,6 +206,7 @@ bool propagate_value(QDef qdef, std::map<QDef, int>& propagated_values) {
   std::vector<CFG_Opd*> operands = node->get_rhs_operands();
   std::string op = node->get_op();
   if (op == "=") {
+    // "def = use" case
     CHECK_INVARIANT(operands.size() == 1, "Expected 1 operand");
     int value;
     if (get_operand_value(operands[0], &value, qdef, propagated_values)) {
@@ -196,6 +216,7 @@ bool propagate_value(QDef qdef, std::map<QDef, int>& propagated_values) {
     return false;
   }
 
+  // "def = use1 op use2" case
   CHECK_INVARIANT(operands.size() == 2, "Expected 2 operands");
   int v1, v2;
   bool f1 = get_operand_value(operands[0], &v1, qdef, propagated_values);
@@ -222,12 +243,15 @@ bool propagate_value(QDef qdef, std::map<QDef, int>& propagated_values) {
 std::map<QDef, int> ddg_propagate_constants() {
   std::map<QDef, int> propagated_values; // Also serves as an "in_list"
   std::queue<QDef> worklist;
+  // Find value that can be initially propagated
   for (QDef qdef : program->get_ddg_nodes()) {
     if (!program->is_part_of_other_partition(qdef.def.node) && propagate_value(qdef, propagated_values)) {
       worklist.push(qdef);
     }
   }
 
+  // Keep propagating constants for nodes and checking dependent nodes
+  // until no more values can be propagated
   while (!worklist.empty()) {
     QDef qdef = worklist.front();
     worklist.pop();
@@ -242,22 +266,30 @@ std::map<QDef, int> ddg_propagate_constants() {
   return propagated_values;
 }
 
+// If all qdefs of def (using contexts) are equivalent,
+// reduces them to a single qdef and updates the DDG accordingly
 bool tryReduce(Def def, const std::set<int>& contexts) {
+  // Map uses (in the form of a Def) to either a set of incoming contexts or a known value for a single qdef
+  // If prev_versions is identical for each qdef of def, the def can be reduced
   std::map<Def, std::pair<std::set<int>, int>> prev_versions;
+  int known_value;
   bool first = true;
   for (int context : contexts) {
     int value;
     if (program->get_ddg_propagated_value({def, context}, &value)) {
-      if (!prev_versions.empty()) {
+      // This qdef has a known value; make sure it matches any previously known value
+      if (!prev_versions.empty() || (!first && known_value != value)) {
         return false;
       }
+      known_value = value;
       first = false;
       continue;
     }
 
-    std::set<QDef> other = program->get_ddg_incoming({def, context});
+    std::set<QDef> incoming = program->get_ddg_incoming({def, context});
     std::map<Def, std::pair<std::set<int>, int>> versions;
-    for (QDef use : other) {
+    // Compute the new version of dependencies for this qdef
+    for (QDef use : incoming) {
       auto it = versions.find(use.def);
       if (it == versions.end()) {
         if (program->get_ddg_propagated_value(use, &value)) {
@@ -267,6 +299,7 @@ bool tryReduce(Def def, const std::set<int>& contexts) {
         }
       } else {
         bool res;
+        // Make sure propagated value status, this matches what versions is tracking
         if ((res = program->get_ddg_propagated_value(use, &value)) != it->second.first.empty()) {
           return false;
         }
@@ -280,6 +313,7 @@ bool tryReduce(Def def, const std::set<int>& contexts) {
       }
     }
 
+    // Make sure the dependency versions are consistent
     if (first) {
       first = false;
       prev_versions = versions;
@@ -291,6 +325,8 @@ bool tryReduce(Def def, const std::set<int>& contexts) {
   std::set<QDef> uses;
   std::set<QDef> usedBy;
   first = true;
+  // Compute which qdefs use this def and which are used by this def
+  // Remove all qdefs for this def from the DDG
   for (int context : contexts) {
     if (first) {
       for (QDef src : program->get_ddg_incoming({def, context})) {
@@ -304,6 +340,7 @@ bool tryReduce(Def def, const std::set<int>& contexts) {
     program->remove_ddg_node({def, context});
   }
 
+  // Readd this def to the DDG as a single qdef
   for (QDef src : uses) {
     program->add_ddg_edge(src, {def, 1});
   }
@@ -314,6 +351,7 @@ bool tryReduce(Def def, const std::set<int>& contexts) {
 }
 
 void ddg_reduce() {
+  // Map defs to all contexts they are associated with
   std::map<Def, std::set<int>> qdefs;
   for (QDef qdef : program->get_ddg_nodes()) {
     qdefs[qdef.def].insert(qdef.context);
@@ -321,15 +359,17 @@ void ddg_reduce() {
 
   std::queue<Def> worklist;
   std::set<Def> reduced;
-  for (auto pair : qdefs) {
-    if (pair.second.size() == 1) {
-      reduced.insert(pair.first);
-    } else if (tryReduce(pair.first, pair.second)) {
-      worklist.push(pair.first);
-      reduced.insert(pair.first);
+  for (auto& [def, contexts] : qdefs) {
+    if (contexts.size() == 1) {
+      // This def is already reduced
+      reduced.insert(def);
+    } else if (tryReduce(def, contexts)) {
+      worklist.push(def);
+      reduced.insert(def);
     }
   }
 
+  // Keep reducing defs until no more can be reduced
   while (!worklist.empty()) {
     Def def = worklist.front();
     worklist.pop();
@@ -338,6 +378,8 @@ void ddg_reduce() {
     }
     for (QDef use : program->get_ddg_outgoing({def, 1})) {
       if (reduced.find({use.def}) == reduced.end()) {
+        // If a node that uses this def can now be reduced, add it to the worklist
+        // so it can query whether any of its dependents can also be reduced
         if (tryReduce(use.def, qdefs[use.def])) {
           worklist.push(use.def);
           reduced.insert(use.def);
@@ -348,8 +390,11 @@ void ddg_reduce() {
 }
 
 std::set<QDef> ddg_detect_dead_qdefs() {
+  // Start with all qdefs marked dead (if we start with nothing marked dead,
+  // we would need to handle cycles in the DDG to detect everything that is dead)
   std::set<QDef> dead_qdefs = program->get_ddg_nodes();
   std::queue<QDef> worklist;
+  // All USEVARs require that the variables they use are live; add these to the worklist
   for (QDef qdef : program->get_ddg_nodes()) {
     if (qdef.def.var_name == USEVAR) {
       dead_qdefs.erase(dead_qdefs.find(qdef));
@@ -363,6 +408,7 @@ std::set<QDef> ddg_detect_dead_qdefs() {
     }
   }
 
+  // Make sure all qdefs used by a live qdef are also marked live
   while (!worklist.empty()) {
     QDef qdef = worklist.front();
     worklist.pop();

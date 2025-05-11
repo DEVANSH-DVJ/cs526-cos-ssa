@@ -65,16 +65,22 @@ public:
   // Add an out edge
   void add_out_edge(CFG_Edge *edge);
 
+  // Returns the global variables involved at this node
   std::set<std::string> get_globals();
+  // Get predecessor and successor node ids
   std::set<int> get_predecessors();
   std::set<int> get_successors();
 
   const std::string& get_op();
+  // Gets the LHS in a string representation
   const std::string& get_def();
+  // Returns a set of strings representing variables on the RHS
   std::set<std::string> get_uses();
   CFG_Opd* get_lopd();
   std::pair<CFG_Opd*, CFG_Opd*> get_ropds();
+  // Returns all operands on the right hand side (at most 2)
   std::vector<CFG_Opd*> get_rhs_operands();
+  // Get the called function if this is a call node
   const std::string& get_callee();
 
   /* Helper functions */
