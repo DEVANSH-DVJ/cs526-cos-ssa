@@ -15,7 +15,7 @@ bool Context::operator<(const Context& other) const {
   return proc == other.proc ? context < other.context : proc < other.proc;
 }
 
-std::string Context::to_string() {
+std::string Context::to_string() const {
   std::string res = "(" + proc + ", {";
 
   bool first_outer = true;
@@ -52,40 +52,11 @@ int ContextTable::insert_context(const Context& context) {
   if (it == context_to_repr.end()) {
     // Entirely new context
     context_map[next_context] = context;
-    context_to_repr[context][next_context] = 1;
+    context_to_repr[context] = next_context;
     return next_context++;
   }
-  // Return existing representation, inc reference count
-  auto repr = it->second.begin();
-  ++repr->second;
-  return repr->first;
-}
-
-bool ContextTable::update_context(int* repr, const Context& context) {
-  auto it = context_map.find(*repr);
-  CHECK_INVARIANT(it != context_map.end(), "Context represented by integer does not exist");
-
-  if (it->second == context) {
-    // No change
-    return false;
-  }
-
-  auto context_repr = context_to_repr[it->second].find(*repr);
-  if (--context_repr->second == 0) {
-    // If this is the only reference for this repr, reuse this repr
-    context_to_repr[it->second].erase(context_repr);
-    if (context_to_repr[it->second].empty()) {
-      context_to_repr.erase(context_to_repr.find(it->second));
-    }
-
-    context_map[*repr] = context;
-    context_to_repr[context][*repr] = 1;
-  } else {
-    // There are other references to the old context, so insert this new context and update repr
-    *repr = insert_context(context);
-  }
-
-  return true;
+  // Return existing representation
+  return it->second;
 }
 
 std::string ContextTable::to_string() {

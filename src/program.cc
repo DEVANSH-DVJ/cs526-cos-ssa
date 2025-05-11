@@ -498,12 +498,10 @@ std::set<QDef> Program::get_ddg_outgoing(QDef node) {
 bool Program::create_ddg_transition(QNode from_qnode, const Context& to_context) {
   DDG& ddg = ddgs[cur_partition];
   auto it = ddg.context_transitions[from_qnode.node].find(from_qnode.context);
+  int new_context = ddg.context_table.insert_context(to_context);
   if (it != ddg.context_transitions[from_qnode.node].end()) {
     // We are updating an existing transition
-    int new_context = it->second;
-    bool updated = ddg.context_table.update_context(&new_context, to_context);
     if (new_context != it->second) {
-      // If we have a new context, the old context is still in use
       ddg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
       // Get rid of any existing reverse transition and set the new reverse transition
       auto transitionIt = ddg.reverse_context_transitions[it->second].find(from_qnode);
@@ -511,14 +509,14 @@ bool Program::create_ddg_transition(QNode from_qnode, const Context& to_context)
         ddg.reverse_context_transitions[it->second].erase(ddg.reverse_context_transitions[it->second].find(from_qnode));
       }
       ddg.reverse_context_transitions[new_context].insert(from_qnode);
+      return true;
     }
-    return updated;
+    return false;
   }
 
   // This is a new context transition, so add it to the context table
-  int context = ddg.context_table.insert_context(to_context);
-  ddg.context_transitions[from_qnode.node][from_qnode.context] = context;
-  ddg.reverse_context_transitions[context].insert(from_qnode);
+  ddg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
+  ddg.reverse_context_transitions[new_context].insert(from_qnode);
   return true;
 }
 

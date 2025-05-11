@@ -20,7 +20,7 @@ public:
   bool operator==(const Context& other) const;
   bool operator<(const Context& other) const;
 
-  std::string to_string();
+  std::string to_string() const;
 private:
   std::string proc;
   std::set<std::pair<Def, std::set<Def>>> context;
@@ -35,16 +35,11 @@ public:
   // Registers the context and returns an integer representation for the Context
   int insert_context(const Context& context);
 
-  // Given an integer representation and a possibly new version of the context, updates the context
-  // Returns true if the context changed, in which case repr will be set to the new representation
-  // (repr may remain unchanged)
-  bool update_context(int* repr, const Context& context);
-
   std::string to_string();
 private:
   std::map<int, Context> context_map;
-  // Maps contexts to their representation; representations are mapped to their reference counts
-  std::map<Context, std::map<int, int>> context_to_repr;
+  // Maps contexts to their representation
+  std::map<Context, int> context_to_repr;
   int next_context = 1;
 };
 
