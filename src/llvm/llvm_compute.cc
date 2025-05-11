@@ -52,14 +52,14 @@ void deconstruct_context_transition(llvm::CallInst* call, llvm::GlobalVariable* 
     builder.CreateCondBr(cond, trueBB, falseBB);
 
     builder.SetInsertPoint(trueBB);
-    builder.CreateBr(callBB);
     builder.CreateStore(llvm::ConstantInt::get(int_type, it->second), cur_context);
+    builder.CreateBr(callBB);
     
     builder.SetInsertPoint(falseBB);
   }
 
-  builder.CreateBr(callBB);
   builder.CreateStore(llvm::ConstantInt::get(int_type, final_transition->second), cur_context);
+  builder.CreateBr(callBB);
 }
 
 // Returns a llvm value representing the operand
