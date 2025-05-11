@@ -139,7 +139,8 @@ GlobalInfo get_globals(llvm::Module* module) {
             }
           }
         } else if (llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(&inst)) {
-          if (is_usable_func(call->getCalledFunction())) {
+          llvm::Function* called_func = call->getCalledFunction();
+          if (called_func != nullptr && is_usable_func(called_func)) {
             // "Promote" returns to globals
             globals.uses[&inst] = func_ret_to_global(call->getCalledFunction());
           }

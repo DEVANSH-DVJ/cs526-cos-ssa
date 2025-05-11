@@ -28,6 +28,8 @@ class Program {
   /* State */
   std::string tool;
   std::string input_name;
+  bool single_partition;
+  bool no_opt;
 
   /* Procedures */
   std::list<Procedure *> *procs;
@@ -107,10 +109,10 @@ class Program {
   // of variables that interact with each other
   // If single_partition = true, all globals will be placed into
   // the same partition instead
-  void partition_globals(bool single_partition = false);
+  void partition_globals();
 public:
   /* Constructors and Destructor */
-  Program(std::string tool, std::string input_file);
+  Program(std::string tool, std::string input_file, bool single_partition, bool no_opt);
   ~Program();
 
   /* Get functions */

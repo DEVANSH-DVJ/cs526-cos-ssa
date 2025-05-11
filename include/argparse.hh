@@ -11,6 +11,8 @@ using namespace std;
 
 enum short_options {
   OPT_TYPE = 0x80,
+  SINGLE_PARTITION_FLAG = 0x81,
+  NO_OPT_FLAG = 0x82,
 };
 
 enum tool_name { TOOL_CFG, TOOL_SSA, TOOL_DDG, TOOL_CFG_TO_SSA, TOOL_LLVM, TOOL_ALL, TOOL_UNKNOWN };
@@ -18,6 +20,8 @@ enum tool_name { TOOL_CFG, TOOL_SSA, TOOL_DDG, TOOL_CFG_TO_SSA, TOOL_LLVM, TOOL_
 struct arguments {
   tool_name tool;
   string input_file;
+  bool single_partition;
+  bool no_opt;
 };
 
 /* Program documentation */
@@ -28,6 +32,8 @@ char args_doc[] = "[FILE]";
 
 /* Options visible to user */
 struct argp_option options[] = {{"tool", OPT_TYPE, "TYPE", 0, "Tool Name"},
+                                {"single-partition", SINGLE_PARTITION_FLAG, NULL, 0, "Use a single partition of globals"},
+                                {"no-opt", NO_OPT_FLAG, NULL, 0, "Skip optimizations to the DDG"},
                                 {0}};
 
 error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -54,6 +60,14 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
       cout << "Unknown tool name: " << arg << endl;
       argp_usage(state);
     }
+    break;
+
+  case SINGLE_PARTITION_FLAG:
+    arguments->single_partition = true;
+    break;
+
+  case NO_OPT_FLAG:
+    arguments->no_opt = true;
     break;
 
   case ARGP_KEY_ARG:

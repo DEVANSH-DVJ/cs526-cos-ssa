@@ -21,9 +21,11 @@ extern void ssa_set_out(FILE *);
 
 extern fstream *dot_fd;
 
-Program::Program(string tool, string input_name) {
+Program::Program(string tool, string input_name, bool single_partition, bool no_opt) {
   this->tool = tool;
   this->input_name = input_name;
+  this->single_partition = single_partition;
+  this->no_opt = no_opt;
 
   if (this->tool == "cfg" || this->tool == "ddg" || this->tool == "cfg-to-ssa") {
     string cfg_file = this->input_name + ".cfg";
@@ -396,7 +398,7 @@ std::set<std::string> create_partition(std::set<std::string>& globals,
   return partition;
 }
 
-void Program::partition_globals(bool single_partition) {
+void Program::partition_globals() {
   std::set<std::string> globals;
   std::map<std::string, std::set<std::string>> interactions;
   // Create a graph of globals where an edge represents a dependency between two globals
@@ -605,7 +607,7 @@ void Program::run() {
     this->visualize_ssa();
   } else if (this->tool == "ddg") {
     this->parse_cfg();
-    this->partition_globals(true);
+    this->partition_globals();
     cur_partition = 0;
     this->construct_ddg();
     this->propagate_ddg_constants();
@@ -618,9 +620,13 @@ void Program::run() {
     this->init_ssa();
     for (cur_partition = 0; cur_partition < partitions.size(); ++cur_partition) {
       this->construct_ddg();
-      this->propagate_ddg_constants();
-      this->reduce_ddg();
-      this->detect_dead_ddg_qdefs();
+
+      if (!this->no_opt) {
+        this->propagate_ddg_constants();
+        this->reduce_ddg();
+        this->detect_dead_ddg_qdefs();
+      }
+
       this->construct_ssa_partition();
     }
     this->finalize_ssa();
@@ -638,9 +644,13 @@ void Program::run() {
     // the corresponding parts of the SSA graph
     for (cur_partition = 0; cur_partition < partitions.size(); ++cur_partition) {
       this->construct_ddg();
-      this->propagate_ddg_constants();
-      this->reduce_ddg();
-      this->detect_dead_ddg_qdefs();
+
+      if (!this->no_opt) {
+        this->propagate_ddg_constants();
+        this->reduce_ddg();
+        this->detect_dead_ddg_qdefs();
+      }
+
       this->construct_ssa_partition();
     }
     this->finalize_ssa();
