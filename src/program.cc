@@ -610,8 +610,12 @@ void Program::run() {
     this->partition_globals();
     cur_partition = 0;
     this->construct_ddg();
-    this->propagate_ddg_constants();
-    this->reduce_ddg();
+
+    if (!this->no_opt) {
+      this->propagate_ddg_constants();
+      this->reduce_ddg();
+    }
+
     this->visualize_ddg();
   } else if (this->tool == "cfg-to-ssa") {
     this->parse_cfg();

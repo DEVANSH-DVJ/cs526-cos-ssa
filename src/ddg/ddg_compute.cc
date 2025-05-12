@@ -178,16 +178,6 @@ bool get_operand_value(CFG_Opd* opd, int* opd_value, QDef qdef, std::map<QDef, i
         }
       }
 
-      if (found) {
-        // Since there is a known value for this opd, remove all incoming qdef edges
-        // where the src is this opd
-        for (QDef incoming : program->get_ddg_incoming(qdef)) {
-          if (incoming.def.var_name == opd->get_opd_var()) {
-            program->remove_ddg_edge(incoming, qdef);
-          }
-        }
-      }
-
       return found;
     }
     default: return false;
@@ -268,7 +258,7 @@ std::map<QDef, int> ddg_propagate_constants() {
 
 // If all qdefs of def (using contexts) are equivalent,
 // reduces them to a single qdef and updates the DDG accordingly
-bool tryReduce(Def def, const std::set<int>& contexts) {
+bool try_reduce(Def def, const std::set<int>& contexts) {
   // Map uses (in the form of a Def) to either a set of incoming contexts or a known value for a single qdef
   // If prev_versions is identical for each qdef of def, the def can be reduced
   std::map<Def, std::pair<std::set<int>, int>> prev_versions;
@@ -363,7 +353,7 @@ void ddg_reduce() {
     if (contexts.size() == 1) {
       // This def is already reduced
       reduced.insert(def);
-    } else if (tryReduce(def, contexts)) {
+    } else if (try_reduce(def, contexts)) {
       worklist.push(def);
       reduced.insert(def);
     }
@@ -380,7 +370,7 @@ void ddg_reduce() {
       if (reduced.find({use.def}) == reduced.end()) {
         // If a node that uses this def can now be reduced, add it to the worklist
         // so it can query whether any of its dependents can also be reduced
-        if (tryReduce(use.def, qdefs[use.def])) {
+        if (try_reduce(use.def, qdefs[use.def])) {
           worklist.push(use.def);
           reduced.insert(use.def);
         }
