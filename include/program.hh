@@ -62,9 +62,9 @@ class Program {
   std::map<std::pair<int, int>, SSA_Edge *> *ssa_edges;
 
   /* LLVM */
-  std::unique_ptr<llvm::Module> llvm_module;
-  llvm::LLVMContext context;
   llvm::SMDiagnostic err;
+  llvm::LLVMContext context;
+  std::unique_ptr<llvm::Module> llvm_module;
   std::map<int, llvm::Value*> llvm_nodes;
   std::map<std::pair<int, int>, llvm::CallInst*> llvm_call_operands_for_node;
 
@@ -192,9 +192,6 @@ public:
 
   // Reads the LLVM file into a Module
   void llvm_init_module();
-
-  // Cleanup
-  void cleanup();
 
   // Run
   void run();

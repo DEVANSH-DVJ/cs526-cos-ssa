@@ -309,6 +309,5 @@ Opd
 
 int cfg_error(const char *msg) {
   cerr << "Syntax Error: Line " << cfg_lineno << ": " << msg << "\n";
-  program->cleanup();
   return 1;
 }

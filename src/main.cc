@@ -76,5 +76,6 @@ int main(int argc, char **argv) {
     CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Unknown tool");
   }
 
+  delete program;
   exit(0);
 }

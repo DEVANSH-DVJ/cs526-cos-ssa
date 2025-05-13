@@ -59,6 +59,7 @@ Program::~Program() {
     delete it->second;
   }
   delete this->procedures;
+  delete this->procs;
 
   for (map<int, CFG_Node *>::iterator it = this->cfg_nodes->begin();
        it != this->cfg_nodes->end(); ++it) {
@@ -595,8 +596,6 @@ void Program::remove_ddg_edge(QDef src, QDef dest) {
   ddg.edges[src].erase(ddg.edges[src].find(dest));
   ddg.reverse_edges[dest].erase(ddg.reverse_edges[dest].find(src));
 }
-
-void Program::cleanup() {}
 
 void Program::run() {
   if (this->tool == "cfg") {

@@ -77,7 +77,7 @@ GlobalInfo get_globals(llvm::Module* module) {
     if (var.getNumOperands() != 1) {
       // Only support scalars
       addr_taken.insert(var.getName().str());
-      break;
+      continue;
     }
     bool found = false;
     // Check all uses for this variable
@@ -104,7 +104,6 @@ GlobalInfo get_globals(llvm::Module* module) {
     }
     if (found) {
       addr_taken.insert(var.getName().str());
-      break;
     }
   }
 
