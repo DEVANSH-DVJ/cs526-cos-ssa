@@ -1,14 +1,14 @@
+#include "headers.hh"
+#include "argparse.hh"
+
+#include <llvm/Support/ManagedStatic.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
-
-#include "argparse.hh"
-
 #include <list>
 #include <string>
 
-#include "headers.hh"
 
 using namespace std;
 
@@ -77,5 +77,6 @@ int main(int argc, char **argv) {
   }
 
   delete program;
+  llvm::llvm_shutdown();
   exit(0);
 }
