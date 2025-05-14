@@ -38,7 +38,7 @@ Program::Program(string tool, string input_name, bool single_partition, bool no_
   } else if (this->tool == "llvm" || this->tool == "all") {
     string ll_file = this->input_name + ".ll";
     string output_ll_file = this->input_name + ".out.ll";
-    llvm_module = llvm::parseIRFile(ll_file, err, context);
+    llvm_module = llvm::parseIRFile(ll_file, llvm_err, llvm_context);
     llvm_set_in(llvm_module.get());
     llvm_set_out(output_ll_file);
   } else {
@@ -125,6 +125,10 @@ llvm::Value* Program::get_llvm_node(int node_id, bool abort_if_not_found) {
   return it->second;
 }
 
+llvm::Type* Program::get_llvm_type(const std::string& var) {
+  return llvm_global_types[var];
+}
+
 llvm::CallInst* Program::get_llvm_call_operand_at_node(int node_id, int operand_num) {
   return llvm_call_operands_for_node[std::make_pair(node_id, operand_num)];
 }
@@ -188,6 +192,10 @@ void Program::add_ssa_edge(SSA_Edge *edge) {
 
 void Program::map_node_to_llvm(int node, llvm::Value* value) {
   llvm_nodes[node] = value;
+}
+
+void Program::map_var_to_llvm_type(const std::string& var, llvm::Type* type) {
+  llvm_global_types[var] = type;
 }
 
 void Program::add_llvm_call_operand_at_node(int node, int operand_num, llvm::CallInst* call) {

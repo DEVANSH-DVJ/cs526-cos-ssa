@@ -62,10 +62,11 @@ class Program {
   std::map<std::pair<int, int>, SSA_Edge *> *ssa_edges;
 
   /* LLVM */
-  llvm::SMDiagnostic err;
-  llvm::LLVMContext context;
+  llvm::SMDiagnostic llvm_err;
+  llvm::LLVMContext llvm_context;
   std::unique_ptr<llvm::Module> llvm_module;
   std::map<int, llvm::Value*> llvm_nodes;
+  std::map<std::string, llvm::Type*> llvm_global_types;
   std::map<std::pair<int, int>, llvm::CallInst*> llvm_call_operands_for_node;
 
   /* Helper functions */
@@ -126,6 +127,9 @@ public:
   SSA_Node *get_ssa_node(int node_id, bool abort_if_not_found);
   // Get LLVM node by id
   llvm::Value* get_llvm_node(int node_id, bool abort_if_not_found);
+  // Get the LLVM type of a global variable
+  llvm::Type* get_llvm_type(const std::string& var);
+  // Get the CallInst represented by RHS operand num at node id
   llvm::CallInst* get_llvm_call_operand_at_node(int node_id, int operand_num);
 
   /* Update functions */
@@ -144,6 +148,8 @@ public:
 
   // Maps a node to a particular LLVM value
   void map_node_to_llvm(int node, llvm::Value* value);
+  // Maps a global variable to an LLVM type
+  void map_var_to_llvm_type(const std::string& var, llvm::Type* type);
   // Maps one of the operands of a node to a particular CallInst
   void add_llvm_call_operand_at_node(int node, int operand_num, llvm::CallInst* call);
 

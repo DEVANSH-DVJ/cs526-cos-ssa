@@ -81,7 +81,8 @@ llvm::Value* get_value(SSA_Opd* operand, int operand_num, int node_num, llvm::In
       // Else fall down to the SSA_PhiOpd case
     }
     case SSA_PhiOpd:
-      return new llvm::LoadInst(int_type, qdef_globals[operand->get_opd_var()], "", insert_before);
+      return new llvm::LoadInst(program->get_llvm_type(operand->get_opd_var()),
+                                qdef_globals[operand->get_opd_var()], "", insert_before);
     case SSA_NumOpd:
       return llvm::ConstantInt::get(int_type, operand->get_opd_value());
     case SSA_InputOpd: {

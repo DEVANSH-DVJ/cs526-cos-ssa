@@ -150,6 +150,11 @@ GlobalInfo get_globals(llvm::Module* module) {
       }
     }
   }
+
+  for (llvm::GlobalVariable* var : globals.globals) {
+    program->map_var_to_llvm_type(var->getName().str(), var->getValueType());
+  }
+
   return globals;
 }
 
