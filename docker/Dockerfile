@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 RUN wget https://apt.llvm.org/llvm.sh && \
   chmod +x llvm.sh && \
-  ./llvm.sh 19 && \
+  ./llvm.sh 15 && \
   rm -f llvm.sh
 
 RUN apt-get install -y bison flex libbison-dev && \

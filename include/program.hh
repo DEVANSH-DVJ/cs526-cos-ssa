@@ -1,9 +1,9 @@
 #ifndef _PROGRAM_HH_
 #define _PROGRAM_HH_
 
-#include "ddg/ddg_context.hh"
+#include "dfg/dfg_context.hh"
 #include "cfg/cfg_opd.hh"
-#include "ddg/ddg_types.hh"
+#include "dfg/dfg_types.hh"
 
 #include <llvm/IR/Value.h>
 #include <llvm/IR/LLVMContext.h>
@@ -39,8 +39,8 @@ class Program {
   std::map<int, CFG_Node *> *cfg_nodes;
   std::map<std::pair<int, int>, CFG_Edge *> *cfg_edges;
 
-  /* DDG */
-  struct DDG {
+  /* DFG */
+  struct DFG {
     std::set<QDef> nodes;
     ContextTable context_table;
     std::map<QDef, std::set<QDef>> edges;
@@ -50,8 +50,8 @@ class Program {
     std::map<int, std::map<int, int>> context_transitions; // From node, from context, to context
     std::map<int, std::set<QNode>> reverse_context_transitions;
   };
-  /* A vector of DDGs for each global partition */
-  std::vector<DDG> ddgs;
+  /* A vector of DFGs for each global partition */
+  std::vector<DFG> dfgs;
 
   /* The global partitions */
   std::vector<std::set<std::string>> partitions;
@@ -76,17 +76,17 @@ class Program {
   void parse_cfg_from_llvm();
   // Parse SSA graph
   void parse_ssa();
-  // Construct DDG from the CFG graph
-  void construct_ddg();
-  // Do constant propagation on the DDG
-  void propagate_ddg_constants();
-  // Reduce reduncancy in the DDG
-  void reduce_ddg();
-  // Do dead code elimination on the DDG
-  void detect_dead_ddg_qdefs();
+  // Construct DFG from the CFG graph
+  void construct_dfg();
+  // Do constant propagation on the DFG
+  void propagate_dfg_constants();
+  // Reduce reduncancy in the DFG
+  void reduce_dfg();
+  // Do dead code elimination on the DFG
+  void detect_dead_dfg_qdefs();
   // Initialized the SSA graph
   void init_ssa();
-  // Construct the SSA graph from the current DDG
+  // Construct the SSA graph from the current DFG
   void construct_ssa_partition();
   // Finalizes the SSA graph by converting empty assignments to empty nodes
   void finalize_ssa();
@@ -96,8 +96,8 @@ class Program {
   void dump_cfg();
   // Visualize CFG graph
   void visualize_cfg();
-  // Visualize the DDG
-  void visualize_ddg();
+  // Visualize the DFG
+  void visualize_dfg();
   // Dump the SSA graph to a file
   void dump_ssa();
   // Visualize SSA graph
@@ -156,37 +156,37 @@ public:
   // Get all global variables
   std::set<std::string> get_globals();
 
-  /* DDG function: these all operate on the DDG corresponding to the current partition */
-  // DDG getters
-  std::set<QDef> get_ddg_nodes();
-  std::set<QDef> get_ddg_incoming(QDef node);
-  std::set<QDef> get_ddg_outgoing(QDef node);
-  // Creates a context transition in the DDG
+  /* DFG function: these all operate on the DFG corresponding to the current partition */
+  // DFG getters
+  std::set<QDef> get_dfg_nodes();
+  std::set<QDef> get_dfg_incoming(QDef node);
+  std::set<QDef> get_dfg_outgoing(QDef node);
+  // Creates a context transition in the DFG
   // Returns true if a new transition was created
   // or if an existing transition changed (the context was updated)
-  bool create_ddg_transition(QNode from_qnode, const Context& to_context);
+  bool create_dfg_transition(QNode from_qnode, const Context& to_context);
   // Get a from context, to context transition pair at a particular node
   // This may be an end iterator
-  std::map<int, int>::iterator get_ddg_transition(QNode qnode);
+  std::map<int, int>::iterator get_dfg_transition(QNode qnode);
   // Gets a from context, to context transition map at a particular node
-  std::map<int, int>& get_ddg_transitions(int node);
+  std::map<int, int>& get_dfg_transitions(int node);
   // Gets the end iterator for context transitions from a particular node
-  std::map<int, int>::iterator ddg_transitions_end(int node);
-  // DDG reverse transition getters
-  std::map<int, std::set<QNode>>::iterator get_ddg_reverse_transitions(int context);
-  std::map<int, std::set<QNode>>::iterator ddg_reverse_transitions_end();
+  std::map<int, int>::iterator dfg_transitions_end(int node);
+  // DFG reverse transition getters
+  std::map<int, std::set<QNode>>::iterator get_dfg_reverse_transitions(int context);
+  std::map<int, std::set<QNode>>::iterator dfg_reverse_transitions_end();
   // Returns whether qdef has a known value
   // If true, value is updated to be that value
-  bool get_ddg_propagated_value(QDef qdef, int* value);
+  bool get_dfg_propagated_value(QDef qdef, int* value);
   // Returns whether a qdef is dead and can be removed
-  bool ddg_is_dead(QDef qdef);
+  bool dfg_is_dead(QDef qdef);
   // Registers a context and returns its integer representation
-  int insert_ddg_context(Context context);
-  // Add / remove functions for the DDG
-  void add_ddg_node(QDef node);
-  void remove_ddg_node(QDef node);
-  void add_ddg_edge(QDef src, QDef dest);
-  void remove_ddg_edge(QDef src, QDef dest);
+  int insert_dfg_context(Context context);
+  // Add / remove functions for the DFG
+  void add_dfg_node(QDef node);
+  void remove_dfg_node(QDef node);
+  void add_dfg_edge(QDef src, QDef dest);
+  void remove_dfg_edge(QDef src, QDef dest);
 
   // Functions for working with the different global partitions
   void set_cur_partition(int partition);

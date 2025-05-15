@@ -1,5 +1,5 @@
-#ifndef _DDG_TYPES_HH_
-#define _DDG_TYPES_HH_
+#ifndef _DFG_TYPES_HH_
+#define _DFG_TYPES_HH_
 
 #include <string>
 

@@ -12,9 +12,9 @@
 #include "cfg/cfg_node.hh"
 #include "cfg/cfg_opd.hh"
 
-#include "ddg/ddg_compute.hh"
-#include "ddg/ddg_context.hh"
-#include "ddg/ddg_types.hh"
+#include "dfg/dfg_compute.hh"
+#include "dfg/dfg_context.hh"
+#include "dfg/dfg_types.hh"
 
 #include "ssa/ssa_compute.hh"
 #include "ssa/ssa_edge.hh"

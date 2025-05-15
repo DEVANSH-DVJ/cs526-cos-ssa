@@ -44,10 +44,10 @@ int main(int argc, char **argv) {
                           arguments.single_partition, arguments.no_opt);
     program->run();
     break;
-  case TOOL_DDG:
+  case TOOL_DFG:
     CHECK_INPUT_AND_ABORT(input_file.substr(input_file.length() - 4) == ".cfg",
                           "Input file must be a .cfg file");
-    program = new Program("ddg", input_file.substr(0, input_file.length() - 4),
+    program = new Program("dfg", input_file.substr(0, input_file.length() - 4),
                           arguments.single_partition, arguments.no_opt);
     program->run();
     break;

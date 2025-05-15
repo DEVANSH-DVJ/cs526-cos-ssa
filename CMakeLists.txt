@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
-project(CoS-SSA LANGUAGES CXX)
+project(CoS-SSA LANGUAGES C CXX)
 
+set(CMAKE_CXX_COMPILER clang++-15)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 SET(CMAKE_CXX_FLAGS "-Wall")
@@ -8,19 +9,19 @@ SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Ensure directories for generated files exist
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/cfg ${CMAKE_BINARY_DIR}/src/ddg ${CMAKE_BINARY_DIR}/src/ssa ${CMAKE_BINARY_DIR}/src/llvm)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/cfg ${CMAKE_BINARY_DIR}/include/ddg ${CMAKE_BINARY_DIR}/include/ssa ${CMAKE_BINARY_DIR}/include/llvm)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/src/cfg ${CMAKE_BINARY_DIR}/src/dfg ${CMAKE_BINARY_DIR}/src/ssa ${CMAKE_BINARY_DIR}/src/llvm)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/cfg ${CMAKE_BINARY_DIR}/include/dfg ${CMAKE_BINARY_DIR}/include/ssa ${CMAKE_BINARY_DIR}/include/llvm)
 
 # Public headers
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/cfg)
-include_directories(${PROJECT_SOURCE_DIR}/include/ddg)
+include_directories(${PROJECT_SOURCE_DIR}/include/dfg)
 include_directories(${PROJECT_SOURCE_DIR}/include/ssa)
 include_directories(${PROJECT_SOURCE_DIR}/include/llvm)
 
 # Include generated parser headers
 include_directories(${CMAKE_BINARY_DIR}/include/cfg)
-include_directories(${CMAKE_BINARY_DIR}/include/ddg)
+include_directories(${CMAKE_BINARY_DIR}/include/dfg)
 include_directories(${CMAKE_BINARY_DIR}/include/ssa)
 include_directories(${CMAKE_BINARY_DIR}/include/llvm)
 

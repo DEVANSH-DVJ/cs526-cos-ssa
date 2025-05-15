@@ -72,7 +72,7 @@ llvm::Value* get_value(SSA_Opd* operand, int operand_num, int node_num, llvm::In
       // Check if there is a known value or if this it a promoted return value
       std::pair<int, int> meta = operand->get_meta_num();
       int value;
-      if (program->get_ddg_propagated_value({{operand->get_opd_var(), meta.first}, meta.second}, &value)) {
+      if (program->get_dfg_propagated_value({{operand->get_opd_var(), meta.first}, meta.second}, &value)) {
         return llvm::ConstantInt::get(int_type, value);
       }
       if (llvm::CallInst* call = program->get_llvm_call_operand_at_node(node_num, operand_num)) {
@@ -242,9 +242,8 @@ void deconstruct_single_partition(std::map<std::string, llvm::GlobalVariable*>& 
   }
 
   llvm::Type* int_type = llvm::IntegerType::get(module->getContext(), 32);
-  llvm::GlobalVariable* cur_context = new llvm::GlobalVariable(int_type, false, llvm::GlobalValue::InternalLinkage,
+  llvm::GlobalVariable* cur_context = new llvm::GlobalVariable(*module, int_type, false, llvm::GlobalValue::InternalLinkage,
                                                            llvm::ConstantInt::get(int_type, 0), context_var_name);
-  module->insertGlobalVariable(cur_context);
 
   // Deconstruct each SSA node in the current partition
   for (auto pair : *program->get_procs()) {
@@ -274,7 +273,7 @@ void deconstruct_single_partition(std::map<std::string, llvm::GlobalVariable*>& 
       if (ssa_node->get_type() == SSA_NodeType::SSA_CallNode) {
         // Handle context transitions
         if (func_uses_context.find(ssa_node->get_callee()) != func_uses_context.end()) {
-          deconstruct_context_transition(llvm::dyn_cast<llvm::CallInst>(value), cur_context, program->get_ddg_transitions(ssa_node->get_node_id()));
+          deconstruct_context_transition(llvm::dyn_cast<llvm::CallInst>(value), cur_context, program->get_dfg_transitions(ssa_node->get_node_id()));
         }
         continue;
       }

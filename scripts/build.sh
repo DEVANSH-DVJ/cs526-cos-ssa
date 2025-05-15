@@ -14,7 +14,7 @@ fi
 # (Re)generate Ninja build files out-of-source
 cmake -S . -B build -G Ninja \
       -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_COMPILER=clang++-19
+      -DCMAKE_CXX_COMPILER=clang++-15
 if [[ $? -ne 0 ]]; then
     echo "CMake configuration failed!"
     exit 1

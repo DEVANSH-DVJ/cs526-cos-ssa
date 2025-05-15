@@ -15,7 +15,7 @@ enum short_options {
   NO_OPT_FLAG = 0x82,
 };
 
-enum tool_name { TOOL_CFG, TOOL_SSA, TOOL_DDG, TOOL_CFG_TO_SSA, TOOL_LLVM, TOOL_ALL, TOOL_UNKNOWN };
+enum tool_name { TOOL_CFG, TOOL_SSA, TOOL_DFG, TOOL_CFG_TO_SSA, TOOL_LLVM, TOOL_ALL, TOOL_UNKNOWN };
 
 struct arguments {
   tool_name tool;
@@ -33,7 +33,7 @@ char args_doc[] = "[FILE]";
 /* Options visible to user */
 struct argp_option options[] = {{"tool", OPT_TYPE, "TYPE", 0, "Tool Name"},
                                 {"single-partition", SINGLE_PARTITION_FLAG, NULL, 0, "Use a single partition of globals"},
-                                {"no-opt", NO_OPT_FLAG, NULL, 0, "Skip optimizations to the DDG"},
+                                {"no-opt", NO_OPT_FLAG, NULL, 0, "Skip optimizations to the DFG"},
                                 {0}};
 
 error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -48,8 +48,8 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
       arguments->tool = TOOL_CFG;
     } else if (strcasecmp(arg, "ssa") == 0) {
       arguments->tool = TOOL_SSA;
-    } else if (strcasecmp(arg, "ddg") == 0) {
-      arguments->tool = TOOL_DDG;
+    } else if (strcasecmp(arg, "dfg") == 0) {
+      arguments->tool = TOOL_DFG;
     } else if (strcasecmp(arg, "cfg-to-ssa") == 0) {
       arguments->tool = TOOL_CFG_TO_SSA;
     } else if (strcasecmp(arg, "llvm") == 0) {

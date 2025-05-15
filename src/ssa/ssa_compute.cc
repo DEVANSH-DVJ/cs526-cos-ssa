@@ -75,8 +75,8 @@ SSA_Opd* cfg_to_ssa_opd(CFG_Opd* cfg_opd, std::pair<int, int> meta_num, bool is_
 }
 
 void ssa_construct_partition() {
-  for (QDef qdef : program->get_ddg_nodes()) {
-    if (qdef.def.node == 0 || program->is_part_of_other_partition(qdef.def.node) || program->ddg_is_dead(qdef)) {
+  for (QDef qdef : program->get_dfg_nodes()) {
+    if (qdef.def.node == 0 || program->is_part_of_other_partition(qdef.def.node) || program->dfg_is_dead(qdef)) {
       // Skip if this is an "uninitialized" qdef or belongs to another partition
       // or if the qdef is dead and thus does not need to be handled
       continue;
@@ -84,7 +84,7 @@ void ssa_construct_partition() {
 
     CFG_Node* cfg_node = program->get_cfg_node(qdef.def.node, true);
     std::list<SSA_Stmt*>* stmts = new std::list<SSA_Stmt*>();
-    std::set<QDef> deps = program->get_ddg_incoming(qdef);
+    std::set<QDef> deps = program->get_dfg_incoming(qdef);
     std::map<string, std::list<std::pair<int, int>>> versions;
     std::map<string, SSA_Opd*> final_versions;
     for (QDef dep : deps) {
@@ -94,7 +94,7 @@ void ssa_construct_partition() {
     SSA_Node* node = program->get_ssa_node(qdef.def.node, true);
     SSA_Opd* lopd = cfg_to_ssa_opd(cfg_node->get_lopd(), std::make_pair(qdef.def.node, qdef.context), true, final_versions);
     int value;
-    if (program->get_ddg_propagated_value(qdef, &value)) {
+    if (program->get_dfg_propagated_value(qdef, &value)) {
       // Use the propagated value
       stmts->push_back(new SSA_Stmt(SSA_AssignStmt, "=", lopd, new SSA_Opd(SSA_NumOpd, value), nullptr));
       node->add_meta(new SSA_Meta(std::make_pair(qdef.def.node, qdef.context), stmts));

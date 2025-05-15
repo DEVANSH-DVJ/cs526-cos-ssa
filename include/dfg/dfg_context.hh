@@ -1,7 +1,7 @@
-#ifndef _DDG_CONTEXT_HH_
-#define _DDG_CONTEXT_HH_
+#ifndef _DFG_CONTEXT_HH_
+#define _DFG_CONTEXT_HH_
 
-#include "ddg_types.hh"
+#include "dfg_types.hh"
 
 #include <map>
 #include <set>

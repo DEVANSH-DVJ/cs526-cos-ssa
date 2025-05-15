@@ -78,7 +78,7 @@ std::set<QDef> reaching_q_defs(const std::set<QDef>& X) {
 
   // Loop over all reachible qdefs
   while (!worklist.empty()) {
-    std::set<QDef> incoming = program->get_ddg_incoming(worklist.front());
+    std::set<QDef> incoming = program->get_dfg_incoming(worklist.front());
     worklist.pop();
     for (QDef node : incoming) {
       if (seen.find(node) == seen.end()) {

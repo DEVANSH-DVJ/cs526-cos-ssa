@@ -27,7 +27,7 @@ Program::Program(string tool, string input_name, bool single_partition, bool no_
   this->single_partition = single_partition;
   this->no_opt = no_opt;
 
-  if (this->tool == "cfg" || this->tool == "ddg" || this->tool == "cfg-to-ssa") {
+  if (this->tool == "cfg" || this->tool == "dfg" || this->tool == "cfg-to-ssa") {
     string cfg_file = this->input_name + ".cfg";
     cfg_set_in(fopen(cfg_file.c_str(), "r"));
     cfg_set_out(fopen("/dev/null", "w"));
@@ -208,15 +208,15 @@ void Program::parse_cfg() { cfg_parse(); }
 
 void Program::parse_ssa() { ssa_parse(); }
 
-void Program::construct_ddg() { ddg_construct(); }
+void Program::construct_dfg() { dfg_construct(); }
 
-void Program::propagate_ddg_constants() { ddgs[cur_partition].propagated_values = ddg_propagate_constants(); }
+void Program::propagate_dfg_constants() { dfgs[cur_partition].propagated_values = dfg_propagate_constants(); }
 
-void Program::reduce_ddg() {
-  ddg_reduce();
+void Program::reduce_dfg() {
+  dfg_reduce();
 }
 
-void Program::detect_dead_ddg_qdefs() { ddgs[cur_partition].dead_qdefs = ddg_detect_dead_qdefs(); }
+void Program::detect_dead_dfg_qdefs() { dfgs[cur_partition].dead_qdefs = dfg_detect_dead_qdefs(); }
 
 void Program::init_ssa() {
   ssa_init();
@@ -291,19 +291,19 @@ void print_qdef(QDef node, const std::map<QDef, int>& propagated_values) {
   }
 }
 
-void Program::visualize_ddg() {
-  DDG& ddg = ddgs[cur_partition];
-  std::cout << ddg.context_table.to_string() << '\n';
+void Program::visualize_dfg() {
+  DFG& dfg = dfgs[cur_partition];
+  std::cout << dfg.context_table.to_string() << '\n';
 
   // Print out the contexts
-  for (auto& [node, context_map] : ddg.context_transitions) {
+  for (auto& [node, context_map] : dfg.context_transitions) {
     for (auto [to_context, from_context] : context_map) {
       std::cout << "Context transition at node " << node << ": " << to_context << " -> " << from_context << '\n';
     }
   }
   std::cout << '\n';
 
-  std::vector<QDef> nodes (ddg.nodes.begin(), ddg.nodes.end());
+  std::vector<QDef> nodes (dfg.nodes.begin(), dfg.nodes.end());
   // Order qdefs for consistent printing
   std::sort(nodes.begin(), nodes.end(), [](QDef l, QDef r) {
     return l.def.node < r.def.node;
@@ -311,16 +311,16 @@ void Program::visualize_ddg() {
 
   // Print out the qdefs and their dependencies
   for (QDef node : nodes) {
-    print_qdef(node, ddg.propagated_values);
+    print_qdef(node, dfg.propagated_values);
     std::cout << " <- ";
     bool first = true;
-    for (QDef incoming : ddg.reverse_edges[node]) {
+    for (QDef incoming : dfg.reverse_edges[node]) {
       if (first) {
         first = false;
       } else {
         std::cout << ", ";
       }
-      print_qdef(incoming, ddg.propagated_values);
+      print_qdef(incoming, dfg.propagated_values);
     }
     std::cout << '\n';
   }
@@ -437,7 +437,7 @@ void Program::partition_globals() {
 
   if (single_partition) {
     partitions.push_back(globals);
-    ddgs.resize(1);
+    dfgs.resize(1);
     return;
   }
 
@@ -445,8 +445,8 @@ void Program::partition_globals() {
   while (!globals.empty()) {
     partitions.push_back(create_partition(globals, interactions));
   }
-  // Create a DDG for each partition
-  ddgs.resize(partitions.size());
+  // Create a DFG for each partition
+  dfgs.resize(partitions.size());
 }
 
 void Program::set_cur_partition(int partition) {
@@ -494,115 +494,115 @@ std::set<std::string> Program::get_globals() {
   return res;
 }
 
-std::set<QDef> Program::get_ddg_nodes() {
-  return ddgs[cur_partition].nodes;
+std::set<QDef> Program::get_dfg_nodes() {
+  return dfgs[cur_partition].nodes;
 }
 
-std::set<QDef> Program::get_ddg_incoming(QDef node) {
-  return ddgs[cur_partition].reverse_edges[node];
+std::set<QDef> Program::get_dfg_incoming(QDef node) {
+  return dfgs[cur_partition].reverse_edges[node];
 }
 
-std::set<QDef> Program::get_ddg_outgoing(QDef node) {
-  return ddgs[cur_partition].edges[node];
+std::set<QDef> Program::get_dfg_outgoing(QDef node) {
+  return dfgs[cur_partition].edges[node];
 }
 
-bool Program::create_ddg_transition(QNode from_qnode, const Context& to_context) {
-  DDG& ddg = ddgs[cur_partition];
-  auto it = ddg.context_transitions[from_qnode.node].find(from_qnode.context);
-  int new_context = ddg.context_table.insert_context(to_context);
-  if (it != ddg.context_transitions[from_qnode.node].end()) {
+bool Program::create_dfg_transition(QNode from_qnode, const Context& to_context) {
+  DFG& dfg = dfgs[cur_partition];
+  auto it = dfg.context_transitions[from_qnode.node].find(from_qnode.context);
+  int new_context = dfg.context_table.insert_context(to_context);
+  if (it != dfg.context_transitions[from_qnode.node].end()) {
     // We are updating an existing transition
     if (new_context != it->second) {
-      ddg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
+      dfg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
       // Get rid of any existing reverse transition and set the new reverse transition
-      auto transitionIt = ddg.reverse_context_transitions[it->second].find(from_qnode);
-      if (transitionIt != ddg.reverse_context_transitions[it->second].end()) {
-        ddg.reverse_context_transitions[it->second].erase(ddg.reverse_context_transitions[it->second].find(from_qnode));
+      auto transitionIt = dfg.reverse_context_transitions[it->second].find(from_qnode);
+      if (transitionIt != dfg.reverse_context_transitions[it->second].end()) {
+        dfg.reverse_context_transitions[it->second].erase(dfg.reverse_context_transitions[it->second].find(from_qnode));
       }
-      ddg.reverse_context_transitions[new_context].insert(from_qnode);
+      dfg.reverse_context_transitions[new_context].insert(from_qnode);
       return true;
     }
     return false;
   }
 
   // This is a new context transition, so add it to the context table
-  ddg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
-  ddg.reverse_context_transitions[new_context].insert(from_qnode);
+  dfg.context_transitions[from_qnode.node][from_qnode.context] = new_context;
+  dfg.reverse_context_transitions[new_context].insert(from_qnode);
   return true;
 }
 
-std::map<int, int>::iterator Program::get_ddg_transition(QNode from_qnode) {
-  return ddgs[cur_partition].context_transitions[from_qnode.node].find(from_qnode.context);
+std::map<int, int>::iterator Program::get_dfg_transition(QNode from_qnode) {
+  return dfgs[cur_partition].context_transitions[from_qnode.node].find(from_qnode.context);
 }
 
-std::map<int, int>& Program::get_ddg_transitions(int node) {
-  return ddgs[cur_partition].context_transitions[node];
+std::map<int, int>& Program::get_dfg_transitions(int node) {
+  return dfgs[cur_partition].context_transitions[node];
 }
 
-std::map<int, int>::iterator Program::ddg_transitions_end(int node) {
-  return ddgs[cur_partition].context_transitions[node].end();
+std::map<int, int>::iterator Program::dfg_transitions_end(int node) {
+  return dfgs[cur_partition].context_transitions[node].end();
 }
 
-std::map<int, std::set<QNode>>::iterator Program::get_ddg_reverse_transitions(int to_context) {
-  return ddgs[cur_partition].reverse_context_transitions.find(to_context);
+std::map<int, std::set<QNode>>::iterator Program::get_dfg_reverse_transitions(int to_context) {
+  return dfgs[cur_partition].reverse_context_transitions.find(to_context);
 }
 
-  std::map<int, std::set<QNode>>::iterator Program::ddg_reverse_transitions_end() {
-  return ddgs[cur_partition].reverse_context_transitions.end();
+  std::map<int, std::set<QNode>>::iterator Program::dfg_reverse_transitions_end() {
+  return dfgs[cur_partition].reverse_context_transitions.end();
 }
 
-bool Program::get_ddg_propagated_value(QDef qdef, int* value) {
-  DDG& ddg = ddgs[cur_partition];
-  auto it = ddg.propagated_values.find(qdef);
-  if (it != ddg.propagated_values.end()) {
+bool Program::get_dfg_propagated_value(QDef qdef, int* value) {
+  DFG& dfg = dfgs[cur_partition];
+  auto it = dfg.propagated_values.find(qdef);
+  if (it != dfg.propagated_values.end()) {
     *value = it->second;
     return true;
   }
   return false;
 }
 
-bool Program::ddg_is_dead(QDef qdef) {
-  DDG& ddg = ddgs[cur_partition];
-  return ddg.dead_qdefs.find(qdef) != ddg.dead_qdefs.end();
+bool Program::dfg_is_dead(QDef qdef) {
+  DFG& dfg = dfgs[cur_partition];
+  return dfg.dead_qdefs.find(qdef) != dfg.dead_qdefs.end();
 }
 
-int Program::insert_ddg_context(Context context) {
-  return ddgs[cur_partition].context_table.insert_context(context);
+int Program::insert_dfg_context(Context context) {
+  return dfgs[cur_partition].context_table.insert_context(context);
 }
 
-void Program::add_ddg_node(QDef node) {
-  ddgs[cur_partition].nodes.insert(node);
+void Program::add_dfg_node(QDef node) {
+  dfgs[cur_partition].nodes.insert(node);
 }
 
-void Program::remove_ddg_node(QDef node) {
-  DDG& ddg = ddgs[cur_partition];
-  CHECK_INVARIANT(ddg.nodes.find(node) != ddg.nodes.end(), "QDef is not an existing node");
+void Program::remove_dfg_node(QDef node) {
+  DFG& dfg = dfgs[cur_partition];
+  CHECK_INVARIANT(dfg.nodes.find(node) != dfg.nodes.end(), "QDef is not an existing node");
 
-  ddg.nodes.erase(ddg.nodes.find(node));
+  dfg.nodes.erase(dfg.nodes.find(node));
   // Erase any edges using this node as a src
-  for (QDef dest : ddg.edges[node]) {
-    ddg.reverse_edges[dest].erase(ddg.reverse_edges[dest].find(node));
+  for (QDef dest : dfg.edges[node]) {
+    dfg.reverse_edges[dest].erase(dfg.reverse_edges[dest].find(node));
   }
-  ddg.edges.erase(ddg.edges.find(node));
+  dfg.edges.erase(dfg.edges.find(node));
   // Erase any edges using this node as a dest
-  for (QDef src : ddg.reverse_edges[node]) {
-    ddg.edges[src].erase(ddg.edges[src].find(node));
+  for (QDef src : dfg.reverse_edges[node]) {
+    dfg.edges[src].erase(dfg.edges[src].find(node));
   }
-  ddg.reverse_edges.erase(ddg.reverse_edges.find(node));
+  dfg.reverse_edges.erase(dfg.reverse_edges.find(node));
 }
 
-void Program::add_ddg_edge(QDef src, QDef dest) {
-  DDG& ddg = ddgs[cur_partition];
-  ddg.nodes.insert(src);
-  ddg.nodes.insert(dest);
-  ddg.edges[src].insert(dest);
-  ddg.reverse_edges[dest].insert(src);
+void Program::add_dfg_edge(QDef src, QDef dest) {
+  DFG& dfg = dfgs[cur_partition];
+  dfg.nodes.insert(src);
+  dfg.nodes.insert(dest);
+  dfg.edges[src].insert(dest);
+  dfg.reverse_edges[dest].insert(src);
 }
 
-void Program::remove_ddg_edge(QDef src, QDef dest) {
-  DDG& ddg = ddgs[cur_partition];
-  ddg.edges[src].erase(ddg.edges[src].find(dest));
-  ddg.reverse_edges[dest].erase(ddg.reverse_edges[dest].find(src));
+void Program::remove_dfg_edge(QDef src, QDef dest) {
+  DFG& dfg = dfgs[cur_partition];
+  dfg.edges[src].erase(dfg.edges[src].find(dest));
+  dfg.reverse_edges[dest].erase(dfg.reverse_edges[dest].find(src));
 }
 
 void Program::run() {
@@ -612,30 +612,30 @@ void Program::run() {
   } else if (this->tool == "ssa") {
     this->parse_ssa();
     this->visualize_ssa();
-  } else if (this->tool == "ddg") {
+  } else if (this->tool == "dfg") {
     this->parse_cfg();
     this->partition_globals();
     cur_partition = 0;
-    this->construct_ddg();
+    this->construct_dfg();
 
     if (!this->no_opt) {
-      this->propagate_ddg_constants();
-      this->reduce_ddg();
+      this->propagate_dfg_constants();
+      this->reduce_dfg();
     }
 
-    this->visualize_ddg();
+    this->visualize_dfg();
   } else if (this->tool == "cfg-to-ssa") {
     this->parse_cfg();
     this->partition_globals();
 
     this->init_ssa();
     for (cur_partition = 0; cur_partition < partitions.size(); ++cur_partition) {
-      this->construct_ddg();
+      this->construct_dfg();
 
       if (!this->no_opt) {
-        this->propagate_ddg_constants();
-        this->reduce_ddg();
-        this->detect_dead_ddg_qdefs();
+        this->propagate_dfg_constants();
+        this->reduce_dfg();
+        this->detect_dead_dfg_qdefs();
       }
 
       this->construct_ssa_partition();
@@ -651,15 +651,15 @@ void Program::run() {
     this->partition_globals();
 
     this->init_ssa();
-    // For each partition, construct its DDG and use that DDG to fill in
+    // For each partition, construct its DFG and use that DFG to fill in
     // the corresponding parts of the SSA graph
     for (cur_partition = 0; cur_partition < partitions.size(); ++cur_partition) {
-      this->construct_ddg();
+      this->construct_dfg();
 
       if (!this->no_opt) {
-        this->propagate_ddg_constants();
-        this->reduce_ddg();
-        this->detect_dead_ddg_qdefs();
+        this->propagate_dfg_constants();
+        this->reduce_dfg();
+        this->detect_dead_dfg_qdefs();
       }
 
       this->construct_ssa_partition();
