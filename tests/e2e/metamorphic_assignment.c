@@ -1,14 +1,16 @@
-extern int INPUT;
-extern int USEVAR;
+#include <stdio.h>
 
 int i, j;
 
 void fn() {
+  int INPUT, USEVAR;
   i = j;
   USEVAR = i;
+  printf("%d\n", USEVAR);
 }
 
 int main() {
+  int INPUT, USEVAR;
   if (INPUT == 0) {
     j = 20;
     fn();

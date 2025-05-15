@@ -31,9 +31,12 @@ clean:
 	@echo "Build artifacts removed."
 
 reset:
-	rm -rf tests/*.dot
-	rm -rf tests/*.png
-	rm -rf tests/*.ssa
+	rm -rf tests/cfg-to-ssa/*.dot
+	rm -rf tests/cfg-to-ssa/*.png
+	rm -rf tests/cfg-to-ssa/*.ssa
+	rm -rf tests/e2e/*.ll
+	rm -rf tests/e2e/*.o
+	rm -rf tests/e2e/*.stdout
 	rm -rf benchmarks/*.ll
 	rm -rf benchmarks/*.log
 	rm -rf benchmarks/*.o

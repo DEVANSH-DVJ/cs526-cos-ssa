@@ -2,9 +2,13 @@
 
 build
 
-tests/*/*.dot
-tests/*/*.png
-tests/*/*.ssa
+tests/cfg-to-ssa/*.dot
+tests/cfg-to-ssa/*.png
+tests/cfg-to-ssa/*.ssa
+
+tests/e2e/*.ll
+tests/e2e/*.o
+tests/e2e/*.stdout
 
 benchmarks/*.ll
 benchmarks/*.log
