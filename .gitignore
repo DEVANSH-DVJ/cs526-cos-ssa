@@ -4,3 +4,4 @@ build
 
 tests/*.dot
 tests/*.png
+tests/*.ssa

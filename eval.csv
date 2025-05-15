@@ -1,0 +1,8 @@
+benchmark,#procedures,#nodes,#globals,#partitions,#max_partition_size,#max_ddg_size,#total_ddg_size,#max_context_size,#total_context_size,#max_constant_size,#total_constant_size,#max_dead_size,#total_dead_size
+dds7,15,268,7,7,1,25,174,99,343,3,3,2,9
+dijkstra_large,6,88,9,8,2,60,370,27,101,4,18,21,31
+enchantedmaze,145,1024,109,61,5,252,11615,190,1290,9,59,10,139
+int-stc,37,608,21,19,2,165,1686,177,777,52,90,3,30
+int-stc2,37,675,21,19,2,272,3766,712,2965,145,340,7,34
+int-stcp,152,1298,70,48,5,79,3307,54,1336,21,64,8,84
+shell,347,7657,235,229,3,18,2304,10,694,2,6,5,244

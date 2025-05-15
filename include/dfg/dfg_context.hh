@@ -36,7 +36,7 @@ public:
   int insert_context(const Context& context);
 
   std::string to_string();
-private:
+// private:
   std::map<int, Context> context_map;
   // Maps contexts to their representation
   std::map<Context, int> context_to_repr;
