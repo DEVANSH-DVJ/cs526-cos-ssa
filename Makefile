@@ -35,6 +35,7 @@ reset:
 	rm -rf tests/*.png
 	rm -rf tests/*.ssa
 	rm -rf benchmarks/*.ll
+	rm -rf benchmarks/*.log
 	rm -rf benchmarks/*.o
 	@echo "Test outputs cleared."
 
