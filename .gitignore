@@ -7,3 +7,5 @@ tests/*.png
 tests/*.ssa
 
 benchmarks/*.ll
+benchmarks/*.log
+benchmarks/*.o
