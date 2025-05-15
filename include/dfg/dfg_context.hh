@@ -35,8 +35,8 @@ public:
   // Registers the context and returns an integer representation for the Context
   int insert_context(const Context& context);
 
-  std::string to_string();
-private:
+  std::string to_string() const;
+// private:
   std::map<int, Context> context_map;
   // Maps contexts to their representation
   std::map<Context, int> context_to_repr;

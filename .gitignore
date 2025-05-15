@@ -4,3 +4,8 @@ build
 
 tests/*.dot
 tests/*.png
+tests/*.ssa
+
+benchmarks/*.ll
+benchmarks/*.log
+benchmarks/*.o

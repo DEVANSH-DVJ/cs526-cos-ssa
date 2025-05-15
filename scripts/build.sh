@@ -1,5 +1,7 @@
 #!/bin/bash
 
+module load llvm/15.0.7
+
 # Set the working directory
 cd "$(dirname "$0")"/..
 
@@ -11,17 +13,17 @@ else
     mkdir -p build
 fi
 
+cd build
+
 # (Re)generate Ninja build files out-of-source
-cmake -S . -B build -G Ninja \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_COMPILER=clang++-15
+cmake .. -DCMAKE_BUILD_TYPE=Release
 if [[ $? -ne 0 ]]; then
     echo "CMake configuration failed!"
     exit 1
 fi
 
 # Run the build
-ninja -C build -j4
+make -j4
 if [[ $? -ne 0 ]]; then
     echo "Build failed!"
     exit 1

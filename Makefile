@@ -1,13 +1,14 @@
 .PHONY: all help build test clean reset cleanall
 
 all:
-	@echo "No target specified. Use 'make build', 'make test', 'make clean', 'make reset', or 'make cleanall'."
+	@echo "No target specified. Use 'make build', 'make test', 'make eval', 'make clean', 'make reset', or 'make cleanall'."
 	@echo "Use 'make help' for more information."
 
 help:
 	@echo "Available targets:"
 	@echo "  build    - Build the project."
 	@echo "  test     - Run tests for the project."
+	@echo "  eval     - Run benchmarks for the project."
 	@echo "  clean    - Remove build artifacts."
 	@echo "  reset    - Clear test output files (e.g., .dot and .png)."
 	@echo "  cleanall - Perform a full clean including test outputs."
@@ -21,6 +22,10 @@ test:
 	./scripts/test.sh
 	@echo "Testing completed successfully."
 
+eval:
+	./scripts/eval.sh
+	@echo "Evaluation completed successfully."
+
 clean:
 	rm -rf build
 	@echo "Build artifacts removed."
@@ -28,9 +33,9 @@ clean:
 reset:
 	rm -rf tests/*.dot
 	rm -rf tests/*.png
+	rm -rf tests/*.ssa
+	rm -rf benchmarks/*.ll
+	rm -rf benchmarks/*.o
 	@echo "Test outputs cleared."
 
-cleanall: clean
-	rm -f tests/*.dot
-	rm -f tests/*.png
-	@echo "All artifacts and test outputs removed."
+cleanall: clean reset

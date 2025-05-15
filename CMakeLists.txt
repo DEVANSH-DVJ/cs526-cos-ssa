@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(CoS-SSA LANGUAGES C CXX)
 
-set(CMAKE_CXX_COMPILER clang++-15)
+set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 SET(CMAKE_CXX_FLAGS "-Wall")

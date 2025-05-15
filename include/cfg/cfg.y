@@ -125,6 +125,20 @@ Proc
 
     $$ = proc;
   }
+  | CFG_LCB StartNode EndNode EdgeList CFG_RCB
+  {
+    string proc_name = $2->get_parent_proc();
+    CHECK_INPUT_AND_ABORT(proc_name == $3->get_parent_proc(),
+                          "Start node and end node must be in the same procedure");
+
+    Procedure *proc = program->get_proc(proc_name);
+    proc->add_cfg_node($2);
+    proc->add_cfg_node($3);
+    for (list<CFG_Edge *>::iterator it = $4->begin(); it != $4->end(); ++it)
+      proc->add_cfg_edge(*it);
+
+    $$ = proc;
+  }
 ;
 
 NodeList
