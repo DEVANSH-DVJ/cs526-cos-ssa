@@ -162,8 +162,11 @@ GlobalInfo get_globals(llvm::Module* module) {
 // If this operand is used by nothing else, adds it to removable_uses
 void mark_removable_operand(llvm::Value* value, std::set<llvm::Value*>& removable_uses) {
   llvm::LoadInst* load;
+  llvm::CallInst* call;
   if ((load = llvm::dyn_cast<llvm::LoadInst>(value)) && load->getNumUses() == 1) {
     removable_uses.insert(load);
+  } else if ((call = llvm::dyn_cast<llvm::CallInst>(value)) && call->getNumUses() == 1) {
+    removable_uses.insert(call);
   }
 }
 
@@ -292,12 +295,16 @@ std::vector<std::pair<CFG_Node*, llvm::Value*>> get_nodes_in_basic_block(const s
   for (llvm::Instruction& inst : *bb) {
     auto it = globals.uses.find(&inst);
     if (it != globals.uses.end()) {
+      bool make_usevar = true;
       if (llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(&inst)) {
+        make_usevar = false;
         auto it = globals.functions.find(call->getCalledFunction()->getName().str());
         if (it != globals.functions.end()) {
           res.push_back(std::make_pair(new CFG_Node(CFG_NodeType::CFG_CallNode, 0, "CALL " + *it, *it), call));
+          make_usevar = call->getNumUses() > 0;
         }
-      } else {
+      }
+      if (make_usevar) {
         // If this is actually not used by a USEVAR, this will be marked as erasible and removed later
         res.push_back(std::make_pair(
           new CFG_Node(CFG_NodeType::CFG_AssignNode, 0, "=", new CFG_Opd(CFG_OpdType::CFG_UsevarOpd), new CFG_Opd(CFG_OpdType::CFG_VarOpd, it->second), nullptr),
@@ -341,7 +348,8 @@ std::vector<std::pair<CFG_Node*, llvm::Value*>> get_nodes_in_basic_block(const s
   // Remove removable uses (of the form USEVAR = ...)
   std::vector<std::pair<CFG_Node*, llvm::Value*>> filtered_res;
   for (auto pair : res) {
-    if (removable_uses.find(pair.second) == removable_uses.end()) {
+    // Check if this is an AssignNode so we do not remove a call node
+    if (pair.first->get_type() != CFG_NodeType::CFG_AssignNode || removable_uses.find(pair.second) == removable_uses.end()) {
       filtered_res.push_back(pair);
     } else {
       delete pair.first;
@@ -606,6 +614,10 @@ std::vector<std::pair<CFG_Node*, llvm::Value*>> split_node(CFG_Node* node, llvm:
       } else {
         erase_removable_rhs(llvm::dyn_cast<llvm::Instruction>(operand));
       }
+    }
+  } else if (value != nullptr) {
+    if (llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(value)) {
+      program->add_llvm_call_operand_at_node(node_num, 0, call);
     }
   }
 

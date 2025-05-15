@@ -39,6 +39,7 @@ Program::Program(string tool, string input_name, bool single_partition, bool no_
     string ll_file = this->input_name + ".ll";
     string output_ll_file = this->input_name + ".out.ll";
     llvm_module = llvm::parseIRFile(ll_file, llvm_err, llvm_context);
+    CHECK_INPUT_AND_ABORT(llvm_module != NULL, "LLVM IR file could not be parsed");
     llvm_set_in(llvm_module.get());
     llvm_set_out(output_ll_file);
   } else {

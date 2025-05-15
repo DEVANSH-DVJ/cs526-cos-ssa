@@ -388,13 +388,7 @@ std::set<QDef> dfg_detect_dead_qdefs() {
   for (QDef qdef : program->get_dfg_nodes()) {
     if (qdef.def.var_name == USEVAR) {
       dead_qdefs.erase(dead_qdefs.find(qdef));
-      for (QDef use : program->get_dfg_incoming(qdef)) {
-        auto it = dead_qdefs.find(use);
-        if (it != dead_qdefs.end()) {
-          dead_qdefs.erase(it);
-          worklist.push(use);
-        }
-      }
+      worklist.push(qdef);
     }
   }
 
@@ -402,6 +396,11 @@ std::set<QDef> dfg_detect_dead_qdefs() {
   while (!worklist.empty()) {
     QDef qdef = worklist.front();
     worklist.pop();
+    int value;
+    if (program->get_dfg_propagated_value(qdef, &value)) {
+      // No necessary uses
+      continue;
+    }
     for (QDef use : program->get_dfg_incoming(qdef)) {
       auto it = dead_qdefs.find(use);
       if (it != dead_qdefs.end()) {

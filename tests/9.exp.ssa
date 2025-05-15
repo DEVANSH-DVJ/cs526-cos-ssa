@@ -9,7 +9,7 @@ main, P;
 	6_1: USEVAR = 60;
 	7_1: EMPTY;
 	8_1: CALL P;
-	9_1: USEVAR = x_13_1;
+	9_1: x_9_1_PHI = PHI(x_13_2, x_13_3); USEVAR = x_9_1_PHI;
 	10_1: END main;
 
 	1->2;
@@ -28,7 +28,8 @@ main, P;
 {
 	11_1: START P;
 	12_1: EMPTY;
-	13_1: x_13_1 = w_13_1 + t_13_1;
+	13_2: x_13_2 = 60;
+	13_3: x_13_3 = 70;
 	14_1: END P;
 
 	11->12;

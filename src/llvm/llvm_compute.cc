@@ -75,12 +75,13 @@ llvm::Value* get_value(SSA_Opd* operand, int operand_num, int node_num, llvm::In
       if (program->get_dfg_propagated_value({{operand->get_opd_var(), meta.first}, meta.second}, &value)) {
         return llvm::ConstantInt::get(int_type, value);
       }
-      if (llvm::CallInst* call = program->get_llvm_call_operand_at_node(node_num, operand_num)) {
-        return call;
-      }
       // Else fall down to the SSA_PhiOpd case
     }
     case SSA_PhiOpd:
+      // Check if this corresponds to a ret var
+      if (llvm::CallInst* call = program->get_llvm_call_operand_at_node(node_num, operand_num)) {
+        return call;
+      }
       return new llvm::LoadInst(program->get_llvm_type(operand->get_opd_var()),
                                 qdef_globals[operand->get_opd_var()], "", insert_before);
     case SSA_NumOpd:
@@ -101,12 +102,12 @@ llvm::Value* get_value(SSA_Opd* operand, int operand_num, int node_num, llvm::In
 }
 
 // Decomposes stmts into an assignment
-// If this is a USEVAR or keep_as_reg == true, updated phi_node_incoming with the result 
+// If this is a USEVAR or keep_as_reg == true, updated RHS with the result 
 // Otherwise, stores the result to the LHS
 // Any created instructions are inserted before insert_before
 void create_assignment(std::list<SSA_Stmt*>* stmts, llvm::Instruction* insert_before, bool keep_as_reg,
                        std::map<std::string, llvm::GlobalVariable*>& qdef_globals,
-                       std::vector<std::pair<llvm::Value*, llvm::BasicBlock*>>& phi_node_incoming) {
+                       llvm::Value** rhs) {
   CHECK_INVARIANT(stmts->size() > 0, "Expected at least one statement for each metamorphic assignment");
   auto final_stmt = --stmts->end();
   CHECK_INVARIANT((*final_stmt)->get_type() == SSA_AssignStmt, "Expected final stmt to be an assign stmt");
@@ -143,10 +144,10 @@ void create_assignment(std::list<SSA_Stmt*>* stmts, llvm::Instruction* insert_be
     }
   }
 
-  // Update the LHS either through phi_node_incoming or a store
+  // Update RHS or create a store
   SSA_Opd* lhs = (*final_stmt)->get_lhs();
   if (lhs->get_type() == SSA_UsevarOpd || keep_as_reg) {
-    phi_node_incoming.push_back(std::make_pair(stored_value, insert_before->getParent()));
+    *rhs = stored_value;
     return;
   }
 
@@ -162,17 +163,23 @@ void deconstruct_metamorphic_assign(std::map<int, SSA_Meta*>* metas, llvm::Instr
 
   bool defs_return_variable = llvm::isa<llvm::ReturnInst>(assign);
   llvm::BasicBlock* assignBB = assign->getParent();
-  std::vector<std::pair<llvm::Value*, llvm::BasicBlock*>> phi_node_incoming;
+  llvm::Value* rhs;
   if (metas->size() == 1) {
     // Non metamorphic assignment case
-    create_assignment(metas->begin()->second->get_stmts(), assign, defs_return_variable, qdef_globals, phi_node_incoming);
+    create_assignment(metas->begin()->second->get_stmts(), assign, defs_return_variable, qdef_globals, &rhs);
     if (llvm::isa<llvm::LoadInst>(assign)) {
-      assign->replaceAllUsesWith(phi_node_incoming[0].first);
+      assign->replaceAllUsesWith(rhs);
     }
-    assign->eraseFromParent();
+    if (llvm::isa<llvm::CallInst>(assign)) {
+      if (assign != rhs) {
+        assign->replaceAllUsesWith(rhs);
+      }
+    } else {
+      assign->eraseFromParent();
+    }
     if (defs_return_variable) {
       llvm::IRBuilder<> builder (assignBB);
-      builder.CreateRet(phi_node_incoming[0].first);
+      builder.CreateRet(rhs);
     }
     return;
   }
@@ -197,31 +204,21 @@ void deconstruct_metamorphic_assign(std::map<int, SSA_Meta*>* metas, llvm::Instr
     builder.SetInsertPoint(trueBB);
     llvm::Instruction* br = builder.CreateBr(assignBB);
 
-    create_assignment(it->second->get_stmts(), br, defs_return_variable, qdef_globals, phi_node_incoming);
+    create_assignment(it->second->get_stmts(), br, defs_return_variable, qdef_globals, &rhs);
     if (defs_return_variable) {
       br->eraseFromParent();
-      builder.CreateRet(phi_node_incoming.back().first);
+      builder.CreateRet(rhs);
     }
 
     builder.SetInsertPoint(falseBB);
   }
 
   llvm::Instruction* br = builder.CreateBr(assignBB);
-  create_assignment(final_meta->second->get_stmts(), br, defs_return_variable, qdef_globals, phi_node_incoming);
+  create_assignment(final_meta->second->get_stmts(), br, defs_return_variable, qdef_globals, &rhs);
   if (defs_return_variable) {
     assign->eraseFromParent();
-    builder.CreateRet(phi_node_incoming.back().first);
+    builder.CreateRet(rhs);
     return;
-  }
-
-  // If this is a USEVAR, create a phi node and pass it in as the use
-  if (llvm::LoadInst* load = llvm::dyn_cast<llvm::LoadInst>(assign)) {
-    llvm::PHINode* phi = llvm::PHINode::Create(int_type, phi_node_incoming.size());
-    phi->insertBefore(assignBB->getFirstNonPHI());
-    for (auto pair : phi_node_incoming) {
-      phi->addIncoming(pair.first, pair.second);
-    }
-    load->replaceAllUsesWith(phi);
   }
 
   assign->eraseFromParent();
