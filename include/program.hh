@@ -200,7 +200,7 @@ public:
   void llvm_init_module();
 
   // Run
-  void run();
+  void run(bool debug);
 };
 
 #endif

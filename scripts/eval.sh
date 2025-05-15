@@ -17,13 +17,13 @@ if [[ -f ./build/cos_ssa ]]; then
     clang++ -S -emit-llvm -o benchmarks/int-stcp.ll benchmarks/int-stcp.cpp
     clang -S -emit-llvm -o benchmarks/shell.ll benchmarks/shell.c
 
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/dds7.ll > benchmarks/dds7.log 2>&1
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/dijkstra_large.ll > benchmarks/dijkstra_large.log 2>&1
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/enchantedmaze.ll > benchmarks/enchantedmaze.log 2>&1
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/int-stc.ll > benchmarks/int-stc.log 2>&1
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/int-stc2.ll  > benchmarks/int-stc2.log 2>&1
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/int-stcp.ll  > benchmarks/int-stcp.log 2>&1
-    /usr/bin/time -v ./build/cos_ssa --tool=all benchmarks/shell.ll > benchmarks/shell.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/dds7.ll > benchmarks/dds7.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/dijkstra_large.ll > benchmarks/dijkstra_large.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/enchantedmaze.ll > benchmarks/enchantedmaze.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/int-stc.ll > benchmarks/int-stc.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/int-stc2.ll  > benchmarks/int-stc2.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/int-stcp.ll  > benchmarks/int-stcp.log 2>&1
+    /usr/bin/time -v ./build/cos_ssa --tool=all --debug benchmarks/shell.ll > benchmarks/shell.log 2>&1
 
     clang -O3 -Wno-deprecated-builtins benchmarks/dds7.ll -o benchmarks/dds7.old.o # warning
     clang -O3 benchmarks/dijkstra_large.ll -o benchmarks/dijkstra_large.old.o

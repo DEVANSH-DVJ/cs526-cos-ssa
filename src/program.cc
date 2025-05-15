@@ -13,9 +13,6 @@ using namespace std;
 #include "cfg/cfg.tab.hh"
 #include "ssa/ssa.tab.hh"
 
-// #define DEBUG
-#undef DEBUG
-
 extern void cfg_set_in(FILE *);
 extern void cfg_set_out(FILE *);
 
@@ -611,7 +608,7 @@ void Program::remove_dfg_edge(QDef src, QDef dest) {
   dfg.reverse_edges[dest].erase(dfg.reverse_edges[dest].find(src));
 }
 
-void Program::run() {
+void Program::run(bool debug) {
   if (this->tool == "cfg") {
     this->parse_cfg();
     this->visualize_cfg();
@@ -656,23 +653,23 @@ void Program::run() {
     this->parse_cfg_from_llvm();
     this->partition_globals();
 
-#ifdef DEBUG
-    this->dump_cfg();
-    std::cout << "#Procedures: " << this->procs->size() << '\n';
-    std::cout << "CFG nodes: " << cfg_nodes->size() << '\n';
-    std::cout << "Partitions: " << partitions.size() << '\n';
-    int total = 0;
-    int max = 0;
-    for (const auto &partition : partitions) {
-      total += partition.size();
-      if (partition.size() > max) {
-        max = partition.size();
+    if (debug) {
+      // this->dump_cfg();
+      std::cout << "#Procedures: " << this->procs->size() << '\n';
+      std::cout << "CFG nodes: " << cfg_nodes->size() << '\n';
+      std::cout << "Partitions: " << partitions.size() << '\n';
+      int total = 0;
+      int max = 0;
+      for (const auto &partition : partitions) {
+        total += partition.size();
+        if (partition.size() > max) {
+          max = partition.size();
+        }
       }
+      std::cout << "Max partition size: " << max << '\n';
+      std::cout << "Total size: " << total << '\n';
+      std::cout << "Total globals: " << get_globals().size() << '\n';
     }
-    std::cout << "Max partition size: " << max << '\n';
-    std::cout << "Total size: " << total << '\n';
-    std::cout << "Total globals: " << get_globals().size() << '\n';
-#endif
 
     this->init_ssa();
     // For each partition, construct its DFG and use that DFG to fill in
@@ -690,43 +687,44 @@ void Program::run() {
     }
     this->finalize_ssa();
 
-#ifdef DEBUG
-    int total_ddg[4] = {0, 0, 0, 0};
-    int max_ddg[4] = {0, 0, 0, 0};
-    for (const auto &ddg : ddgs) {
-      // DDG size
-      total_ddg[0] += ddg.nodes.size();
-      if (ddg.nodes.size() > max_ddg[0]) {
-        max_ddg[0] = ddg.nodes.size();
+    if (debug) {
+      int total_dfg[4] = {0, 0, 0, 0};
+      int max_dfg[4] = {0, 0, 0, 0};
+      for (const auto &dfg : dfgs) {
+        // std::cout << dfg.context_table.to_string() << '\n';
+        // DFG size
+        total_dfg[0] += dfg.nodes.size();
+        if (dfg.nodes.size() > max_dfg[0]) {
+          max_dfg[0] = dfg.nodes.size();
+        }
+        // Number of contexts
+        total_dfg[1] += dfg.context_table.next_context - 1;
+        if (dfg.context_table.next_context - 1 > max_dfg[1]) {
+          max_dfg[1] = dfg.context_table.next_context - 1;
+        }
+        // Number of propagated values
+        total_dfg[2] += dfg.propagated_values.size();
+        if (dfg.propagated_values.size() > max_dfg[2]) {
+          max_dfg[2] = dfg.propagated_values.size();
+        }
+        // Number of dead QDefs
+        total_dfg[3] += dfg.dead_qdefs.size();
+        if (dfg.dead_qdefs.size() > max_dfg[3]) {
+          max_dfg[3] = dfg.dead_qdefs.size();
+        }
       }
-      // Number of contexts
-      total_ddg[1] += ddg.context_table.next_context - 1;
-      if (ddg.context_table.next_context - 1 > max_ddg[1]) {
-        max_ddg[1] = ddg.context_table.next_context - 1;
-      }
-      // Number of propagated values
-      total_ddg[2] += ddg.propagated_values.size();
-      if (ddg.propagated_values.size() > max_ddg[2]) {
-        max_ddg[2] = ddg.propagated_values.size();
-      }
-      // Number of dead QDefs
-      total_ddg[3] += ddg.dead_qdefs.size();
-      if (ddg.dead_qdefs.size() > max_ddg[3]) {
-        max_ddg[3] = ddg.dead_qdefs.size();
-      }
+      std::cout << "Number of DFGs: " << dfgs.size() << '\n';
+      std::cout << "Max DFG size: " << max_dfg[0] << '\n';
+      std::cout << "Total DFG size: " << total_dfg[0] << '\n';
+      std::cout << "Max number of contexts: " << max_dfg[1] << '\n';
+      std::cout << "Total number of contexts: " << total_dfg[1] << '\n';
+      std::cout << "Max number of propagated values: " << max_dfg[2] << '\n';
+      std::cout << "Total number of propagated values: " << total_dfg[2] << '\n';
+      std::cout << "Max number of dead QDefs: " << max_dfg[3] << '\n';
+      std::cout << "Total number of dead QDefs: " << total_dfg[3] << '\n';
+      // this->dump_ssa();
     }
-    std::cout << "Number of DDGs: " << ddgs.size() << '\n';
-    std::cout << "Max DDG size: " << max_ddg[0] << '\n';
-    std::cout << "Total DDG size: " << total_ddg[0] << '\n';
-    std::cout << "Max number of contexts: " << max_ddg[1] << '\n';
-    std::cout << "Total number of contexts: " << total_ddg[1] << '\n';
-    std::cout << "Max number of propagated values: " << max_ddg[2] << '\n';
-    std::cout << "Total number of propagated values: " << total_ddg[2] << '\n';
-    std::cout << "Max number of dead QDefs: " << max_ddg[3] << '\n';
-    std::cout << "Total number of dead QDefs: " << total_ddg[3] << '\n';
-    this->dump_ssa();
-#endif
-
+    
     this->deconstruct_ssa();
     this->dump_llvm();
   } else {

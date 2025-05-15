@@ -59,7 +59,7 @@ int ContextTable::insert_context(const Context& context) {
   return it->second;
 }
 
-std::string ContextTable::to_string() {
+std::string ContextTable::to_string() const {
   std::string res;
   for (auto& [repr, context] : context_map) {
     res += "Context " + std::to_string(repr) + " = " + context.to_string() + "\n";
