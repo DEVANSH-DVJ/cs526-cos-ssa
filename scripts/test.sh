@@ -27,6 +27,8 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=cfg tests/cfg-to-ssa/10.cfg
     ./build/cos_ssa --tool=cfg tests/cfg-to-ssa/11.cfg
     ./build/cos_ssa --tool=cfg tests/cfg-to-ssa/12.cfg
+    ./build/cos_ssa --tool=cfg tests/cfg-to-ssa/13.cfg
+    ./build/cos_ssa --tool=cfg tests/cfg-to-ssa/14.cfg
 
     # SSA (w/o opt)
     echo "Generating SSA before optimizations..."
@@ -44,6 +46,8 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=cfg-to-ssa --no-opt tests/cfg-to-ssa/10.cfg && mv tests/cfg-to-ssa/10.ssa tests/cfg-to-ssa/10.no-opt.ssa
     ./build/cos_ssa --tool=cfg-to-ssa --no-opt tests/cfg-to-ssa/11.cfg && mv tests/cfg-to-ssa/11.ssa tests/cfg-to-ssa/11.no-opt.ssa
     ./build/cos_ssa --tool=cfg-to-ssa --no-opt tests/cfg-to-ssa/12.cfg && mv tests/cfg-to-ssa/12.ssa tests/cfg-to-ssa/12.no-opt.ssa
+    ./build/cos_ssa --tool=cfg-to-ssa --no-opt tests/cfg-to-ssa/13.cfg && mv tests/cfg-to-ssa/13.ssa tests/cfg-to-ssa/13.no-opt.ssa
+    ./build/cos_ssa --tool=cfg-to-ssa --no-opt tests/cfg-to-ssa/14.cfg && mv tests/cfg-to-ssa/14.ssa tests/cfg-to-ssa/14.no-opt.ssa
 
     # SSA (w/ opt)
     echo "Generating SSA after optimizations..."
@@ -61,6 +65,8 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=cfg-to-ssa tests/cfg-to-ssa/10.cfg && mv tests/cfg-to-ssa/10.ssa tests/cfg-to-ssa/10.opt.ssa
     ./build/cos_ssa --tool=cfg-to-ssa tests/cfg-to-ssa/11.cfg && mv tests/cfg-to-ssa/11.ssa tests/cfg-to-ssa/11.opt.ssa
     ./build/cos_ssa --tool=cfg-to-ssa tests/cfg-to-ssa/12.cfg && mv tests/cfg-to-ssa/12.ssa tests/cfg-to-ssa/12.opt.ssa
+    ./build/cos_ssa --tool=cfg-to-ssa tests/cfg-to-ssa/13.cfg && mv tests/cfg-to-ssa/13.ssa tests/cfg-to-ssa/13.opt.ssa
+    ./build/cos_ssa --tool=cfg-to-ssa tests/cfg-to-ssa/14.cfg && mv tests/cfg-to-ssa/14.ssa tests/cfg-to-ssa/14.opt.ssa
 
     # SSA Visualization Tests
     echo "Visualizing SSA..."
@@ -78,6 +84,8 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/10.opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/11.opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/12.opt.ssa
+    ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/13.opt.ssa
+    ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/14.opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/0.no-opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/1.no-opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/2.no-opt.ssa
@@ -92,6 +100,8 @@ if [[ -f ./build/cos_ssa ]]; then
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/10.no-opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/11.no-opt.ssa
     ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/12.no-opt.ssa
+    ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/13.no-opt.ssa
+    ./build/cos_ssa --tool=ssa tests/cfg-to-ssa/14.no-opt.ssa
 
     echo "CFG to SSA Tests Complete"
     echo "----------------------------------------"
