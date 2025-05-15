@@ -216,7 +216,8 @@ void deconstruct_metamorphic_assign(std::map<int, SSA_Meta*>* metas, llvm::Instr
   llvm::Instruction* br = builder.CreateBr(assignBB);
   create_assignment(final_meta->second->get_stmts(), br, defs_return_variable, qdef_globals, &rhs);
   if (defs_return_variable) {
-    assign->eraseFromParent();
+    assignBB->eraseFromParent();
+    br->eraseFromParent();
     builder.CreateRet(rhs);
     return;
   }
