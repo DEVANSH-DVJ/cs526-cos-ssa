@@ -2,9 +2,9 @@
 
 build
 
-tests/*.dot
-tests/*.png
-tests/*.ssa
+tests/*/*.dot
+tests/*/*.png
+tests/*/*.ssa
 
 benchmarks/*.ll
 benchmarks/*.log

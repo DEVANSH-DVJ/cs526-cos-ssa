@@ -23,7 +23,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Run the build
-make -j8
+make -j4
 if [[ $? -ne 0 ]]; then
     echo "Build failed!"
     exit 1
