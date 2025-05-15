@@ -1,5 +1,7 @@
 #!/bin/bash
 
+module load llvm/15.0.7
+
 # Set the working directory
 cd "$(dirname "$0")"/..
 

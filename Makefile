@@ -28,9 +28,7 @@ clean:
 reset:
 	rm -rf tests/*.dot
 	rm -rf tests/*.png
+	@rm -rf tests/*.ssa
 	@echo "Test outputs cleared."
 
-cleanall: clean
-	rm -f tests/*.dot
-	rm -f tests/*.png
-	@echo "All artifacts and test outputs removed."
+cleanall: clean reset
