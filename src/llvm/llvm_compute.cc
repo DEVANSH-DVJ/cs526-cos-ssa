@@ -258,7 +258,7 @@ void deconstruct_single_partition(std::map<std::string, llvm::GlobalVariable*>& 
 
       if (ssa_node->get_type() == SSA_NodeType::SSA_EmptyNode) {
         // Dead node case
-        if (llvm::isa<llvm::ReturnInst>(value)) {
+        if (llvm::isa<llvm::ReturnInst>(value) || llvm::isa<llvm::CallInst>(value)) {
           continue;
         }
         if (llvm::Instruction* inst = llvm::dyn_cast<llvm::Instruction>(value)) {
