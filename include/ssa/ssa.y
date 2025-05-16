@@ -138,6 +138,8 @@ Proc
       proc->add_ssa_edge(*it);
 
     $$ = proc;
+    delete $3;
+    delete $5;
   }
 ;
 

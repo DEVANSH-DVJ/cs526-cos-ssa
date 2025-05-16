@@ -22,6 +22,9 @@ extern void ssa_lex_destroy();
 
 extern fstream *dot_fd;
 
+static FILE* yyin = nullptr;
+static FILE* yyout = nullptr;
+
 Program::Program(string tool, string input_name, bool single_partition, bool no_opt) {
   this->tool = tool;
   this->input_name = input_name;
@@ -30,12 +33,16 @@ Program::Program(string tool, string input_name, bool single_partition, bool no_
 
   if (this->tool == "cfg" || this->tool == "dfg" || this->tool == "cfg-to-ssa") {
     string cfg_file = this->input_name + ".cfg";
-    cfg_set_in(fopen(cfg_file.c_str(), "r"));
-    cfg_set_out(fopen("/dev/null", "w"));
+    yyin = fopen(cfg_file.c_str(), "r");
+    yyout = fopen("/dev/null", "w");
+    cfg_set_in(yyin);
+    cfg_set_out(yyout);
   } else if (this->tool == "ssa") {
     string ssa_file = this->input_name + ".ssa";
-    ssa_set_in(fopen(ssa_file.c_str(), "r"));
-    ssa_set_out(fopen("/dev/null", "w"));
+    yyin = fopen(ssa_file.c_str(), "r");
+    yyout = fopen("/dev/null", "w");
+    ssa_set_in(yyin);
+    ssa_set_out(yyout);
   } else if (this->tool == "llvm" || this->tool == "all") {
     string ll_file = this->input_name + ".ll";
     string output_ll_file = this->input_name + ".out.ll";
@@ -86,6 +93,14 @@ Program::~Program() {
     delete it->second;
   }
   delete this->ssa_edges;
+
+  if (yyin != nullptr) {
+    fclose(yyin);
+  }
+
+  if (yyout != nullptr) {
+    fclose(yyout);
+  }
 }
 
 map<string, Procedure *> *Program::get_procs() { return this->procedures; }

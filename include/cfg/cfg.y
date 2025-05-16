@@ -126,6 +126,8 @@ Proc
       proc->add_cfg_edge(*it);
 
     $$ = proc;
+    delete $3;
+    delete $5;
   }
   | CFG_LCB StartNode EndNode EdgeList CFG_RCB
   {
