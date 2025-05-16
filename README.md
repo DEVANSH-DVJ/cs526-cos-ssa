@@ -1,8 +1,6 @@
-# CoS-SSA
+# CoS-SSA: Context-Sensitive Interprocedural SSA for Global Variables
 
 ### Build and Run Tests
-
-Run
 
 ```bash
 make cleanall
@@ -12,33 +10,24 @@ make test
 
 ### Reproduce Evaluation
 
-Run
-
 ```bash
 make eval
 ```
 
 ### Repository Layout
 
-`src` contains our implementation, split into more general code.
-
-`llvm` contains code for extract CFG and destroy CoS-SSA.
-
-`cfg` contains our CFG data structures.
-
-`dfg` contains code to compute and optimize the DFG
-
-`ssa` contains our SSA data structures and code to generate CoS-SSA.
-
-`include` contains the header files corresponding to the `.cc` files in `src`.
-
-`docker` contains files to build / run `cos_ssa` in a container.
-
-`scripts` contains build and run scripts used by our `Makefile`.
-
-`tests/cfg-to-ssa` contains our unit tests for DFG construction, optimization, and CoS-SSA generation.
-
-`test/e2e` contains our `.ll` unit tests for the entire program.
+- `src/` contains our implementation, split into more general code.
+  - `src/llvm/` contains code for extract CFG and destroy CoS-SSA.
+  - `src/cfg/` contains our CFG data structures.
+  - `src/dfg/` contains code to compute and optimize the DFG.
+  - `src/ssa/` contains our SSA data structures and code to generate CoS-SSA.
+- `include` contains the header files corresponding to the `.cc` files in `src`.
+- `docker` contains files to build / run `cos_ssa` in a container.
+- `tests/cfg-to-ssa` contains our unit tests for DFG construction, optimization, and CoS-SSA generation.
+- `test/e2e` contains our `.ll` unit tests for the entire program.
+- `benchmarks` contains the benchmarks used in our evaluation.
+- `scripts` contains build and run scripts used by our `Makefile`.
+- `build` contains the pre-built binary.
 
 ### Running the Program
 
