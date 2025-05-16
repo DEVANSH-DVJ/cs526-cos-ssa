@@ -18,6 +18,10 @@ fstream *dot_fd;
 
 int main(int argc, char **argv) {
 
+  {
+    struct arguments arguments;
+  }
+
   // Default arguments
   struct arguments arguments;
 
@@ -79,5 +83,6 @@ int main(int argc, char **argv) {
 
   delete program;
   llvm::llvm_shutdown();
-  exit(0);
+
+  return 0;
 }
