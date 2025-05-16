@@ -10,8 +10,6 @@ make build
 make test
 ```
 
-On the EWS machines, make sure the `LLVM` module is loaded before running build.
-
 ### Reproduce Evaluation
 
 Run
