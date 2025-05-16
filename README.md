@@ -1,20 +1,22 @@
 # CoS-SSA: Context-Sensitive Interprocedural SSA for Global Variables
 
-### Build and Run Tests
-
-```bash
-make cleanall
-make build
-make test
-```
-
 ### Reproduce Evaluation
 
+The build folder contains a pre-built binary.
+
 ```bash
-make eval
+make test # run unit tests
+make eval # run evaluation
 ```
 
-### Repository Layout
+### Clean Build
+
+```bash
+make cleanall # remove all build artifacts and evaluation results
+make build    # build the binary
+```
+
+### Directory Structure
 
 - `src/` contains our implementation, split into more general code.
   - `src/llvm/` contains code for extract CFG and destroy CoS-SSA.
@@ -22,7 +24,7 @@ make eval
   - `src/dfg/` contains code to compute and optimize the DFG.
   - `src/ssa/` contains our SSA data structures and code to generate CoS-SSA.
 - `include` contains the header files corresponding to the `.cc` files in `src`.
-- `docker` contains files to build / run `cos_ssa` in a container.
+- `docker` contains files to build/run `cos_ssa` in a container.
 - `tests/cfg-to-ssa` contains our unit tests for DFG construction, optimization, and CoS-SSA generation.
 - `test/e2e` contains our `.ll` unit tests for the entire program.
 - `benchmarks` contains the benchmarks used in our evaluation.
