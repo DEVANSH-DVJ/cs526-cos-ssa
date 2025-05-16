@@ -1,8 +1,9 @@
 #ifndef _SSA_STMT_HH_
 #define _SSA_STMT_HH_
 
-#include <list>
 #include <string>
+
+#include <list>
 #include <vector>
 
 class SSA_Opd;

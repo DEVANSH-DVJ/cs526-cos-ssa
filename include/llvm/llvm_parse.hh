@@ -2,6 +2,7 @@
 #define _LLVM_PARSE_HH_
 
 #include <llvm/IR/Value.h>
+
 #include <map>
 
 // Sets up the Module input for other LLVM functions

@@ -1,9 +1,9 @@
 %{
 
+  #include "headers.hh"
+
   #include <iostream>
   #include <string>
-
-  #include "headers.hh"
 
   using namespace std;
 

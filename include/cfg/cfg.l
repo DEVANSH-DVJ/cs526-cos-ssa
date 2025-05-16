@@ -1,10 +1,10 @@
 %{
 
-    #include <list>
-    #include <string>
-    #include<iostream>
-
     #include "headers.hh"
+
+    #include <string>
+
+    #include <list>
 
     using namespace std;
 
@@ -63,4 +63,4 @@ ignore [ \t\n]
 
   /* Rest */
 
-. { std::cout << "H\n"; return CFG_UNKNOWN; }
+. { return CFG_UNKNOWN; }

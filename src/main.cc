@@ -1,14 +1,15 @@
-#include "headers.hh"
 #include "argparse.hh"
+#include "headers.hh"
 
-#include <llvm/Support/ManagedStatic.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
-#include <list>
 #include <string>
 
+#include <llvm/Support/ManagedStatic.h>
+
+#include <list>
 
 using namespace std;
 
@@ -17,10 +18,6 @@ Program *program;
 fstream *dot_fd;
 
 int main(int argc, char **argv) {
-
-  {
-    struct arguments arguments;
-  }
 
   // Default arguments
   struct arguments arguments;

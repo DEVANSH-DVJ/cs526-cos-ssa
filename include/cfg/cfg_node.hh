@@ -2,8 +2,8 @@
 #define _CFG_NODE_HH_
 
 #include <string>
-#include <vector>
 
+#include <vector>
 #include <map>
 #include <set>
 

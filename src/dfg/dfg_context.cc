@@ -3,15 +3,15 @@
 #include <queue>
 #include <string>
 
-extern Program* program;
+extern Program *program;
 
-Context::Context(const std::string& proc) : proc {proc} {}
+Context::Context(const std::string &proc) : proc{proc} {}
 
-bool Context::operator==(const Context& other) const {
+bool Context::operator==(const Context &other) const {
   return proc == other.proc && context == other.context;
 }
 
-bool Context::operator<(const Context& other) const {
+bool Context::operator<(const Context &other) const {
   return proc == other.proc ? context < other.context : proc < other.proc;
 }
 
@@ -19,7 +19,7 @@ std::string Context::to_string() const {
   std::string res = "(" + proc + ", {";
 
   bool first_outer = true;
-  for (auto& [def, uses] : context) {
+  for (auto &[def, uses] : context) {
     if (first_outer) {
       first_outer = false;
     } else {
@@ -41,13 +41,13 @@ std::string Context::to_string() const {
   return res + "})";
 }
 
-Context* ContextTable::get_context(int context) {
-    auto it = context_map.find(context);
-    CHECK_INVARIANT(it != context_map.end(), "Context represented by integer does not exist");
-    return &it->second;
+Context *ContextTable::get_context(int context) {
+  auto it = context_map.find(context);
+  CHECK_INVARIANT(it != context_map.end(), "Context represented by integer does not exist");
+  return &it->second;
 }
 
-int ContextTable::insert_context(const Context& context) {
+int ContextTable::insert_context(const Context &context) {
   auto it = context_to_repr.find(context);
   if (it == context_to_repr.end()) {
     // Entirely new context
@@ -61,14 +61,14 @@ int ContextTable::insert_context(const Context& context) {
 
 std::string ContextTable::to_string() const {
   std::string res;
-  for (auto& [repr, context] : context_map) {
+  for (auto &[repr, context] : context_map) {
     res += "Context " + std::to_string(repr) + " = " + context.to_string() + "\n";
   }
   return res;
 }
 
 // Returns the set of transitively reaching qdefs given a set of live qdefs X
-std::set<QDef> reaching_q_defs(const std::set<QDef>& X) {
+std::set<QDef> reaching_q_defs(const std::set<QDef> &X) {
   std::set<QDef> res;
   std::set<QDef> seen = X;
   std::queue<QDef> worklist;
@@ -94,7 +94,7 @@ std::set<QDef> reaching_q_defs(const std::set<QDef>& X) {
 }
 
 // Returns the qdefs in X that are defs of x_n
-std::set<QDef> equivalent_nodes(Def x_n, const std::set<QDef>& X) {
+std::set<QDef> equivalent_nodes(Def x_n, const std::set<QDef> &X) {
   std::set<QDef> res;
   for (QDef y : X) {
     if (y.def == x_n) {
@@ -105,7 +105,7 @@ std::set<QDef> equivalent_nodes(Def x_n, const std::set<QDef>& X) {
 }
 
 // Returns the set of defs removed by striping the context from qdefs in X
-std::set<Def> remove_context(const std::set<QDef>& X) {
+std::set<Def> remove_context(const std::set<QDef> &X) {
   std::set<Def> res;
   for (QDef x : X) {
     res.insert(x.def);
@@ -113,8 +113,8 @@ std::set<Def> remove_context(const std::set<QDef>& X) {
   return res;
 }
 
-Context Context::gen_context(const std::string& proc, const std::set<QDef>& X) {
-  Context context {proc};
+Context Context::gen_context(const std::string &proc, const std::set<QDef> &X) {
+  Context context{proc};
   for (Def x_n : remove_context(X)) {
     context.context.insert({x_n, remove_context(reaching_q_defs(equivalent_nodes(x_n, X)))});
   }

@@ -8,8 +8,7 @@ CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string stmt) {
   if (type == CFG_EmptyNode) {
     stmt = "EMPTY";
   } else if (type != CFG_StartNode && type != CFG_EndNode) {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH,
-                    "CFG_StartNode or CFG_EndNode expected");
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "CFG_StartNode or CFG_EndNode expected");
   }
 
   this->type = type;
@@ -27,8 +26,7 @@ CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string stmt) {
   this->ropd2 = NULL;
 }
 
-CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string stmt,
-                   string callee_proc) {
+CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string stmt, string callee_proc) {
   if (type != CFG_CallNode) {
     CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "CFG_CallNode expected");
   }
@@ -48,8 +46,8 @@ CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string stmt,
   this->ropd2 = NULL;
 }
 
-CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string op, CFG_Opd *lopd,
-                   CFG_Opd *ropd1, CFG_Opd *ropd2) {
+CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string op, CFG_Opd *lopd, CFG_Opd *ropd1,
+                   CFG_Opd *ropd2) {
   if (type != CFG_AssignNode) {
     CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "CFG_AssignNode expected");
   }
@@ -71,8 +69,7 @@ CFG_Node::CFG_Node(CFG_NodeType type, int node_id, string op, CFG_Opd *lopd,
     CHECK_INVARIANT(op == "=", "Assignment operator expected");
     this->stmt = lopd->str() + " = " + ropd1->str();
   } else {
-    this->stmt =
-        lopd->str() + " = " + ropd1->str() + " " + op + " " + ropd2->str();
+    this->stmt = lopd->str() + " = " + ropd1->str() + " " + op + " " + ropd2->str();
   }
 }
 
@@ -96,9 +93,7 @@ int CFG_Node::get_node_id() { return this->node_id; }
 
 string &CFG_Node::get_parent_proc() { return this->parent_proc; }
 
-void CFG_Node::set_node_id(int node_id) {
-  this->node_id = node_id;
-}
+void CFG_Node::set_node_id(int node_id) { this->node_id = node_id; }
 
 void CFG_Node::set_parent_proc(string parent_proc) {
   CHECK_INVARIANT(this->parent_proc == "", "Parent proc already set");
@@ -151,18 +146,18 @@ std::set<int> CFG_Node::get_successors() {
   return res;
 }
 
-const std::string& CFG_Node::get_op() {
-  return op;
-}
+const std::string &CFG_Node::get_op() { return op; }
 
 std::string USEVAR = "$USEVAR$";
-const std::string& CFG_Node::get_def() {
-  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode, "Can not get def of non assignment statement");
+const std::string &CFG_Node::get_def() {
+  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode,
+                  "Can not get def of non assignment statement");
   return lopd->get_type() == CFG_OpdType::CFG_UsevarOpd ? USEVAR : lopd->get_opd_var();
 }
 
 std::set<std::string> CFG_Node::get_uses() {
-  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode, "Can not get uses of non assignment statement");
+  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode,
+                  "Can not get uses of non assignment statement");
   std::set<std::string> res;
   if (ropd1 && ropd1->get_type() == CFG_OpdType::CFG_VarOpd) {
     res.insert(ropd1->get_opd_var());
@@ -173,19 +168,22 @@ std::set<std::string> CFG_Node::get_uses() {
   return res;
 }
 
-CFG_Opd* CFG_Node::get_lopd() {
-  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode, "Can not get def of non assignment statement");
+CFG_Opd *CFG_Node::get_lopd() {
+  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode,
+                  "Can not get def of non assignment statement");
   return lopd;
 }
 
-std::pair<CFG_Opd*, CFG_Opd*> CFG_Node::get_ropds() {
-  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode, "Can not get uses of non assignment statement");
+std::pair<CFG_Opd *, CFG_Opd *> CFG_Node::get_ropds() {
+  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode,
+                  "Can not get uses of non assignment statement");
   return std::make_pair(ropd1, ropd2);
 }
 
-std::vector<CFG_Opd*> CFG_Node::get_rhs_operands() {
-  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode, "Can not get uses of non assignment statement");
-  std::vector<CFG_Opd*> res;
+std::vector<CFG_Opd *> CFG_Node::get_rhs_operands() {
+  CHECK_INVARIANT(type == CFG_NodeType::CFG_AssignNode,
+                  "Can not get uses of non assignment statement");
+  std::vector<CFG_Opd *> res;
   if (ropd1) {
     res.push_back(ropd1);
   }
@@ -195,16 +193,14 @@ std::vector<CFG_Opd*> CFG_Node::get_rhs_operands() {
   return res;
 }
 
-const std::string& CFG_Node::get_callee() {
+const std::string &CFG_Node::get_callee() {
   CHECK_INVARIANT(type == CFG_NodeType::CFG_CallNode, "Can not get callee of non call statement");
   return callee_proc;
 }
 
-void CFG_Node::dump() {
-  *dot_fd << stmt;
-}
+void CFG_Node::dump() { *dot_fd << stmt; }
 
 void CFG_Node::visualize() {
-  *dot_fd << "\t\tnode_" << this->node_id << " [shape=box, xlabel=\""
-          << this->node_id << "\", label=\"" << this->stmt << "\"];\n";
+  *dot_fd << "\t\tnode_" << this->node_id << " [shape=box, xlabel=\"" << this->node_id
+          << "\", label=\"" << this->stmt << "\"];\n";
 }

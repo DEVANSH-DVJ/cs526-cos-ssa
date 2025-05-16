@@ -3,9 +3,10 @@
 
 #include "dfg_types.hh"
 
+#include <string>
+
 #include <map>
 #include <set>
-#include <string>
 
 // Context represents a value based context in a particular procedure
 // Context is only useful to compare if it is equal to other contexts

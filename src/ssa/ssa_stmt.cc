@@ -4,8 +4,7 @@ using namespace std;
 
 extern fstream *dot_fd;
 
-SSA_Stmt::SSA_Stmt(SSA_StmtType type, string op, SSA_Opd *lopd, SSA_Opd *ropd1,
-                   SSA_Opd *ropd2) {
+SSA_Stmt::SSA_Stmt(SSA_StmtType type, string op, SSA_Opd *lopd, SSA_Opd *ropd1, SSA_Opd *ropd2) {
   CHECK_INVARIANT(type == SSA_AssignStmt, "SSA_AssignStmt expected");
 
   this->type = type;
@@ -20,13 +19,11 @@ SSA_Stmt::SSA_Stmt(SSA_StmtType type, string op, SSA_Opd *lopd, SSA_Opd *ropd1,
     CHECK_INVARIANT(op == "=", "Assignment operator expected");
     this->stmt = lopd->str() + " = " + ropd1->str();
   } else {
-    this->stmt =
-        lopd->str() + " = " + ropd1->str() + " " + op + " " + ropd2->str();
+    this->stmt = lopd->str() + " = " + ropd1->str() + " " + op + " " + ropd2->str();
   }
 }
 
-SSA_Stmt::SSA_Stmt(SSA_StmtType type, SSA_Opd *lopd,
-                   std::list<SSA_Opd *> *ropds) {
+SSA_Stmt::SSA_Stmt(SSA_StmtType type, SSA_Opd *lopd, std::list<SSA_Opd *> *ropds) {
   CHECK_INVARIANT(type == SSA_PhiStmt, "SSA_PhiStmt expected");
   CHECK_INVARIANT(lopd->get_type() == SSA_PhiOpd, "SSA_PhiOpd expected");
 
@@ -39,8 +36,7 @@ SSA_Stmt::SSA_Stmt(SSA_StmtType type, SSA_Opd *lopd,
   this->ropds = ropds;
 
   this->stmt = lopd->str() + " = PHI(";
-  for (list<SSA_Opd *>::iterator it = ropds->begin(); it != ropds->end();
-       ++it) {
+  for (list<SSA_Opd *>::iterator it = ropds->begin(); it != ropds->end(); ++it) {
     this->stmt += (*it)->str();
     if (it != --ropds->end())
       this->stmt += ", ";
@@ -59,8 +55,7 @@ SSA_Stmt::~SSA_Stmt() {
     delete this->ropd2;
 
   if (this->ropds != NULL) {
-    for (list<SSA_Opd *>::iterator it = this->ropds->begin();
-         it != this->ropds->end(); ++it)
+    for (list<SSA_Opd *>::iterator it = this->ropds->begin(); it != this->ropds->end(); ++it)
       delete *it;
 
     delete this->ropds;
@@ -83,7 +78,7 @@ void SSA_Stmt::dump() {
 
   *dot_fd << "PHI(";
   bool first = true;
-  for (SSA_Opd* ropd : *ropds) {
+  for (SSA_Opd *ropd : *ropds) {
     if (first) {
       first = false;
     } else {
@@ -96,17 +91,13 @@ void SSA_Stmt::dump() {
 
 std::string &SSA_Stmt::get_stmt() { return this->stmt; }
 
-std::string& SSA_Stmt::get_op() {
-  return op;
-}
+std::string &SSA_Stmt::get_op() { return op; }
 
-SSA_Opd* SSA_Stmt::get_lhs() {
-  return lopd;
-}
+SSA_Opd *SSA_Stmt::get_lhs() { return lopd; }
 
-std::vector<SSA_Opd*> SSA_Stmt::get_rhs() {
+std::vector<SSA_Opd *> SSA_Stmt::get_rhs() {
   CHECK_INVARIANT(type == SSA_AssignStmt, "Can't get RHS of non assign stmt");
-  std::vector<SSA_Opd*> res;
+  std::vector<SSA_Opd *> res;
   if (ropd1 != nullptr) {
     res.push_back(ropd1);
   }
@@ -116,7 +107,7 @@ std::vector<SSA_Opd*> SSA_Stmt::get_rhs() {
   return res;
 }
 
-std::list<SSA_Opd*>* SSA_Stmt::get_phi_uses() {
+std::list<SSA_Opd *> *SSA_Stmt::get_phi_uses() {
   CHECK_INVARIANT(type == SSA_PhiStmt, "Can't get PHI uses of non PHI stmt");
   return ropds;
 }

@@ -6,8 +6,7 @@ extern fstream *dot_fd;
 
 SSA_Opd::SSA_Opd(SSA_OpdType type, pair<int, int> meta_num) {
   if (type != SSA_InputOpd && type != SSA_UsevarOpd) {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH,
-                    "SSA_InputOpd or SSA_UsevarOpd expected");
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_InputOpd or SSA_UsevarOpd expected");
   }
 
   this->type = type;
@@ -32,8 +31,7 @@ SSA_Opd::SSA_Opd(SSA_OpdType type, int num_value) {
 
 SSA_Opd::SSA_Opd(SSA_OpdType type, pair<int, int> meta_num, string var_name) {
   if (type != SSA_VarOpd && type != SSA_PhiOpd) {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH,
-                    "SSA_VarOpd or SSA_PhiOpd expected");
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_VarOpd or SSA_PhiOpd expected");
   }
 
   this->type = type;
@@ -55,25 +53,25 @@ string &SSA_Opd::get_opd_var() { return this->var_name; }
 
 void SSA_Opd::dump() {
   switch (type) {
-    case (SSA_NumOpd):
-      *dot_fd << to_string(this->num_value);
-      break;
-    case (SSA_VarOpd):
-      *dot_fd << var_name << '_' << to_string(this->meta_num.first) << '_' <<
-             to_string(this->meta_num.second);
-      break;
-    case (SSA_PhiOpd):
-      *dot_fd << var_name << '_' << to_string(this->meta_num.first) << '_' <<
-             to_string(this->meta_num.second) << "_PHI";
-      break;
-    case (SSA_InputOpd):
-      *dot_fd << "INPUT";
-      break;
-    case (SSA_UsevarOpd):
-      *dot_fd << "USEVAR";
-      break;
-    default:
-      CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_OpdType unknown");
+  case (SSA_NumOpd):
+    *dot_fd << to_string(this->num_value);
+    break;
+  case (SSA_VarOpd):
+    *dot_fd << var_name << '_' << to_string(this->meta_num.first) << '_'
+            << to_string(this->meta_num.second);
+    break;
+  case (SSA_PhiOpd):
+    *dot_fd << var_name << '_' << to_string(this->meta_num.first) << '_'
+            << to_string(this->meta_num.second) << "_PHI";
+    break;
+  case (SSA_InputOpd):
+    *dot_fd << "INPUT";
+    break;
+  case (SSA_UsevarOpd):
+    *dot_fd << "USEVAR";
+    break;
+  default:
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_OpdType unknown");
   }
 }
 
@@ -90,8 +88,7 @@ string SSA_Opd::str() {
   case (SSA_InputOpd):
     return "INPUT_" + to_string(this->meta_num.first);
   case (SSA_UsevarOpd):
-    return "USEVAR_" + to_string(this->meta_num.first) + "_" +
-           to_string(this->meta_num.second);
+    return "USEVAR_" + to_string(this->meta_num.first) + "_" + to_string(this->meta_num.second);
   }
 
   CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_OpdType unknown");

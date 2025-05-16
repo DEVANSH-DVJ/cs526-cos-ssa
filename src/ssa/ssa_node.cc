@@ -6,8 +6,7 @@ extern fstream *dot_fd;
 
 SSA_Node::SSA_Node(SSA_NodeType type, int node_id, string stmt) {
   if (type != SSA_StartNode && type != SSA_EndNode) {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH,
-                    "SSA_StartNode or SSA_EndNode expected");
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_StartNode or SSA_EndNode expected");
   }
 
   this->type = type;
@@ -22,8 +21,7 @@ SSA_Node::SSA_Node(SSA_NodeType type, int node_id, string stmt) {
   this->metas = NULL;
 }
 
-SSA_Node::SSA_Node(SSA_NodeType type, int node_id, string stmt,
-                   string callee_proc) {
+SSA_Node::SSA_Node(SSA_NodeType type, int node_id, string stmt, string callee_proc) {
   if (type != SSA_CallNode) {
     CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "SSA_CallNode expected");
   }
@@ -62,8 +60,7 @@ SSA_Node::~SSA_Node() {
   delete this->out_edges;
 
   if (this->metas != NULL) {
-    for (map<int, SSA_Meta *>::iterator it = this->metas->begin();
-         it != this->metas->end(); ++it) {
+    for (map<int, SSA_Meta *>::iterator it = this->metas->begin(); it != this->metas->end(); ++it) {
       delete it->second;
     }
     delete this->metas;
@@ -74,7 +71,7 @@ SSA_NodeType SSA_Node::get_type() { return this->type; }
 
 int SSA_Node::get_node_id() { return this->node_id; }
 
-const std::string& SSA_Node::get_callee() {
+const std::string &SSA_Node::get_callee() {
   CHECK_INVARIANT(this->type == SSA_CallNode, "Can't get callee of non call node")
   return this->callee_proc;
 }
@@ -105,10 +102,8 @@ void SSA_Node::add_out_edge(SSA_Edge *edge) {
 void SSA_Node::add_meta(SSA_Meta *meta) {
   CHECK_INVARIANT(meta != NULL, "Meta cannot be NULL");
   int meta_id = meta->get_meta_num().second;
-  CHECK_INVARIANT(this->type == SSA_AssignNode,
-                  "Meta can only be added to Assignment node");
-  CHECK_INVARIANT(this->metas->find(meta_id) == this->metas->end(),
-                  "Meta already exists");
+  CHECK_INVARIANT(this->type == SSA_AssignNode, "Meta can only be added to Assignment node");
+  CHECK_INVARIANT(this->metas->find(meta_id) == this->metas->end(), "Meta already exists");
   this->metas->insert(make_pair(meta_id, meta));
 }
 
@@ -118,7 +113,7 @@ void SSA_Node::make_empty() {
   this->stmt = "EMPTY";
 }
 
-std::map<int, SSA_Meta*>* SSA_Node::get_metas() {
+std::map<int, SSA_Meta *> *SSA_Node::get_metas() {
   CHECK_INVARIANT(metas != NULL, "Meta cannot be NULL");
   return metas;
 }
@@ -135,13 +130,12 @@ void SSA_Node::dump() {
 
 void SSA_Node::visualize() {
   if (this->type != SSA_AssignNode) {
-    *dot_fd << "\t\tnode_" << this->node_id << " [shape=box, xlabel=\""
-            << this->node_id << "\", label=\"" << this->stmt << "\"];\n";
+    *dot_fd << "\t\tnode_" << this->node_id << " [shape=box, xlabel=\"" << this->node_id
+            << "\", label=\"" << this->stmt << "\"];\n";
   } else {
-    *dot_fd << "\t\tnode_" << this->node_id << " [shape=record, xlabel=\""
-            << this->node_id << "\", label=\"";
-    for (map<int, SSA_Meta *>::iterator it = this->metas->begin();
-         it != this->metas->end(); ++it) {
+    *dot_fd << "\t\tnode_" << this->node_id << " [shape=record, xlabel=\"" << this->node_id
+            << "\", label=\"";
+    for (map<int, SSA_Meta *>::iterator it = this->metas->begin(); it != this->metas->end(); ++it) {
       it->second->visualize();
       if (it != --this->metas->end()) {
         *dot_fd << " | ";

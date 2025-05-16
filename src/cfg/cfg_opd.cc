@@ -4,8 +4,7 @@ using namespace std;
 
 CFG_Opd::CFG_Opd(CFG_OpdType type) {
   if (type != CFG_InputOpd && type != CFG_UsevarOpd) {
-    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH,
-                    "CFG_InputOpd or CFG_UsevarOpd expected");
+    CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "CFG_InputOpd or CFG_UsevarOpd expected");
   }
 
   this->type = type;

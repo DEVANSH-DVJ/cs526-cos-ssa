@@ -1,11 +1,11 @@
 %{
 
+  #include "headers.hh"
+
   #include <iostream>
   #include <string>
 
   using namespace std;
-
-  #include "headers.hh"
 
   extern int ssa_lex(void);
 

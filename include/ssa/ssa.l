@@ -1,7 +1,10 @@
 %{
 
-    #include <list>
+    #include "headers.hh"
+
     #include <string>
+
+    #include <list>
 
     #include "headers.hh"
 

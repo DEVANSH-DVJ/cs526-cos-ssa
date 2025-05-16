@@ -5,13 +5,13 @@
 #include <set>
 #include <vector>
 
-extern Program* program;
+extern Program *program;
 
 extern std::string USEVAR;
 // Creates a qdef for a cfg_node at a qnode, accounting for whether
 // the def is in the current partition
-QDef gen_qdef(CFG_Node* cfg_node, QNode qnode) {
-  const std::string& def = cfg_node->get_def();
+QDef gen_qdef(CFG_Node *cfg_node, QNode qnode) {
+  const std::string &def = cfg_node->get_def();
   if (!program->is_in_cur_partition(cfg_node->get_lopd())) {
     return {{USEVAR, qnode.node}, 1}; // All USEVARs have the same context
   } else if (cfg_node->get_rhs_operands()[0]->get_type() == CFG_OpdType::CFG_InputOpd) {
@@ -27,7 +27,7 @@ void dfg_construct() {
   std::map<QNode, std::set<QDef>> rd_in;
   rd_in[{start_main, default_context}] = std::set<QDef>();
   // Add in uninitialized versions of variables to the DFG
-  for (const std::string& var_name : program->get_globals()) {
+  for (const std::string &var_name : program->get_globals()) {
     CFG_Opd opd = CFG_Opd(CFG_OpdType::CFG_VarOpd, var_name);
     if (program->is_in_cur_partition(&opd)) {
       rd_in[{start_main, default_context}].insert({{var_name, 0}, default_context});
@@ -49,7 +49,7 @@ void dfg_construct() {
 
     std::set<QDef> orig_rd_out = rd_out[cur_qnode];
 
-    CFG_Node* node = program->get_cfg_node(cur_qnode.node, true);
+    CFG_Node *node = program->get_cfg_node(cur_qnode.node, true);
     // Update rd_in for the current node
     if (node->get_type() == CFG_NodeType::CFG_StartNode) {
       auto it = program->get_dfg_reverse_transitions(cur_qnode.context);
@@ -92,11 +92,13 @@ void dfg_construct() {
       }
 
       // Update the cotext transition
-      updated_transition = program->create_dfg_transition(cur_qnode, Context::gen_context(node->get_callee(), rd_in[cur_qnode]));
+      updated_transition = program->create_dfg_transition(
+          cur_qnode, Context::gen_context(node->get_callee(), rd_in[cur_qnode]));
     } else {
       // Update rd_out
       rd_out[cur_qnode] = rd_in[cur_qnode];
-      if (node->get_type() == CFG_NodeType::CFG_AssignNode && program->is_in_cur_partition(node->get_lopd())) {
+      if (node->get_type() == CFG_NodeType::CFG_AssignNode &&
+          program->is_in_cur_partition(node->get_lopd())) {
         std::string killed_var = node->get_def();
         // Applies rd_kill
         std::vector<QDef> to_remove;
@@ -155,45 +157,48 @@ void dfg_construct() {
 
 // Returns whether an RHS opd has a known value at qdef
 // If true, opd_value is set to the known value
-bool get_operand_value(CFG_Opd* opd, int* opd_value, QDef qdef, std::map<QDef, int>& propagated_values) {
+bool get_operand_value(CFG_Opd *opd, int *opd_value, QDef qdef,
+                       std::map<QDef, int> &propagated_values) {
   switch (opd->get_type()) {
-    case CFG_OpdType::CFG_NumOpd:
-      *opd_value = opd->get_opd_value();
-      return true;
-    case CFG_OpdType::CFG_VarOpd: {
-      bool found = false;
-      // Loop over all all incoming qdefs that represent opd and see if they
-      // are all known to be the same value
-      for (QDef dependency : program->get_dfg_incoming(qdef)) {
-        if (dependency.def.var_name == opd->get_opd_var()) {
-          auto it = propagated_values.find(dependency);
-          if (it == propagated_values.end()) {
-            return false;
-          }
-          if (found && *opd_value != it->second) {
-            return false;
-          }
-          found = true;
-          *opd_value = it->second;
+  case CFG_OpdType::CFG_NumOpd:
+    *opd_value = opd->get_opd_value();
+    return true;
+  case CFG_OpdType::CFG_VarOpd: {
+    bool found = false;
+    // Loop over all all incoming qdefs that represent opd and see if they
+    // are all known to be the same value
+    for (QDef dependency : program->get_dfg_incoming(qdef)) {
+      if (dependency.def.var_name == opd->get_opd_var()) {
+        auto it = propagated_values.find(dependency);
+        if (it == propagated_values.end()) {
+          return false;
         }
+        if (found && *opd_value != it->second) {
+          return false;
+        }
+        found = true;
+        *opd_value = it->second;
       }
-
-      return found;
     }
-    default: return false;
+
+    return found;
+  }
+  default:
+    return false;
   }
 }
 
-// Returns whether this qdef has a known value and this value has not been previously tracked
-// If true, propagated_values is updated to map the qdef to its known value
-bool propagate_value(QDef qdef, std::map<QDef, int>& propagated_values) {
+// Returns whether this qdef has a known value and this value has not been
+// previously tracked If true, propagated_values is updated to map the qdef to
+// its known value
+bool propagate_value(QDef qdef, std::map<QDef, int> &propagated_values) {
   if (qdef.def.node == 0 || propagated_values.find(qdef) != propagated_values.end()) {
     // Uninitialized variable or already propagated
     return false;
   }
 
-  CFG_Node* node = program->get_cfg_node(qdef.def.node, true);
-  std::vector<CFG_Opd*> operands = node->get_rhs_operands();
+  CFG_Node *node = program->get_cfg_node(qdef.def.node, true);
+  std::vector<CFG_Opd *> operands = node->get_rhs_operands();
   std::string op = node->get_op();
   if (op == "=") {
     // "def = use" case
@@ -235,7 +240,8 @@ std::map<QDef, int> dfg_propagate_constants() {
   std::queue<QDef> worklist;
   // Find value that can be initially propagated
   for (QDef qdef : program->get_dfg_nodes()) {
-    if (!program->is_part_of_other_partition(qdef.def.node) && propagate_value(qdef, propagated_values)) {
+    if (!program->is_part_of_other_partition(qdef.def.node) &&
+        propagate_value(qdef, propagated_values)) {
       worklist.push(qdef);
     }
   }
@@ -247,7 +253,8 @@ std::map<QDef, int> dfg_propagate_constants() {
     worklist.pop();
 
     for (QDef outgoing : program->get_dfg_outgoing(qdef)) {
-      if (!program->is_part_of_other_partition(outgoing.def.node) && propagate_value(outgoing, propagated_values)) {
+      if (!program->is_part_of_other_partition(outgoing.def.node) &&
+          propagate_value(outgoing, propagated_values)) {
         worklist.push(outgoing);
       }
     }
@@ -258,16 +265,18 @@ std::map<QDef, int> dfg_propagate_constants() {
 
 // If all qdefs of def (using contexts) are equivalent,
 // reduces them to a single qdef and updates the DFG accordingly
-bool try_reduce(Def def, const std::set<int>& contexts) {
-  // Map uses (in the form of a Def) to either a set of incoming contexts or a known value for a single qdef
-  // If prev_versions is identical for each qdef of def, the def can be reduced
+bool try_reduce(Def def, const std::set<int> &contexts) {
+  // Map uses (in the form of a Def) to either a set of incoming contexts or a
+  // known value for a single qdef If prev_versions is identical for each qdef
+  // of def, the def can be reduced
   std::map<Def, std::pair<std::set<int>, int>> prev_versions;
   int known_value;
   bool first = true;
   for (int context : contexts) {
     int value;
     if (program->get_dfg_propagated_value({def, context}, &value)) {
-      // This qdef has a known value; make sure it matches any previously known value
+      // This qdef has a known value; make sure it matches any previously known
+      // value
       if (!prev_versions.empty() || (!first && known_value != value)) {
         return false;
       }
@@ -289,7 +298,8 @@ bool try_reduce(Def def, const std::set<int>& contexts) {
         }
       } else {
         bool res;
-        // Make sure propagated value status, this matches what versions is tracking
+        // Make sure propagated value status, this matches what versions is
+        // tracking
         if ((res = program->get_dfg_propagated_value(use, &value)) != it->second.first.empty()) {
           return false;
         }
@@ -349,7 +359,7 @@ void dfg_reduce() {
 
   std::queue<Def> worklist;
   std::set<Def> reduced;
-  for (auto& [def, contexts] : qdefs) {
+  for (auto &[def, contexts] : qdefs) {
     if (contexts.size() == 1) {
       // This def is already reduced
       reduced.insert(def);
@@ -368,8 +378,9 @@ void dfg_reduce() {
     }
     for (QDef use : program->get_dfg_outgoing({def, 1})) {
       if (reduced.find({use.def}) == reduced.end()) {
-        // If a node that uses this def can now be reduced, add it to the worklist
-        // so it can query whether any of its dependents can also be reduced
+        // If a node that uses this def can now be reduced, add it to the
+        // worklist so it can query whether any of its dependents can also be
+        // reduced
         if (try_reduce(use.def, qdefs[use.def])) {
           worklist.push(use.def);
           reduced.insert(use.def);
@@ -381,10 +392,12 @@ void dfg_reduce() {
 
 std::set<QDef> dfg_detect_dead_qdefs() {
   // Start with all qdefs marked dead (if we start with nothing marked dead,
-  // we would need to handle cycles in the DFG to detect everything that is dead)
+  // we would need to handle cycles in the DFG to detect everything that is
+  // dead)
   std::set<QDef> dead_qdefs = program->get_dfg_nodes();
   std::queue<QDef> worklist;
-  // All USEVARs require that the variables they use are live; add these to the worklist
+  // All USEVARs require that the variables they use are live; add these to the
+  // worklist
   for (QDef qdef : program->get_dfg_nodes()) {
     if (qdef.def.var_name == USEVAR) {
       dead_qdefs.erase(dead_qdefs.find(qdef));
