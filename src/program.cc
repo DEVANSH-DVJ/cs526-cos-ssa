@@ -19,6 +19,9 @@ extern void cfg_set_out(FILE *);
 extern void ssa_set_in(FILE *);
 extern void ssa_set_out(FILE *);
 
+extern void cfg_lex_destroy();
+extern void ssa_lex_destroy();
+
 extern fstream *dot_fd;
 
 Program::Program(string tool, string input_name, bool single_partition, bool no_opt) {
@@ -205,9 +208,9 @@ void Program::add_llvm_call_operand_at_node(int node, int operand_num, llvm::Cal
 
 void Program::parse_cfg_from_llvm() { llvm_parse(); }
 
-void Program::parse_cfg() { cfg_parse(); }
+void Program::parse_cfg() { cfg_parse(); cfg_lex_destroy(); }
 
-void Program::parse_ssa() { ssa_parse(); }
+void Program::parse_ssa() { ssa_parse(); ssa_lex_destroy(); }
 
 void Program::construct_dfg() { dfg_construct(); }
 

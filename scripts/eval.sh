@@ -33,22 +33,6 @@ if [[ -f ./build/cos_ssa ]]; then
     opt -passes=ipsccp,globalopt,globaldce benchmarks/int-stcp.ll -S -o benchmarks/int-stcp.baseline.ll
     opt -passes=ipsccp,globalopt,globaldce benchmarks/shell.ll -S -o benchmarks/shell.baseline.ll
 
-    clang -O3 -Wno-deprecated-builtins benchmarks/dds7.ll -o benchmarks/dds7.old.o # warning
-    clang -O3 benchmarks/dijkstra_large.ll -o benchmarks/dijkstra_large.old.o
-    clang++ -O3 benchmarks/enchantedmaze.ll -o benchmarks/enchantedmaze.old.o
-    clang -O3 -lm benchmarks/int-stc.ll -o benchmarks/int-stc.old.o
-    clang -O3 -lm benchmarks/int-stc2.ll -o benchmarks/int-stc2.old.o
-    clang++ -O3 benchmarks/int-stcp.ll -o benchmarks/int-stcp.old.o
-    # clang -O3 benchmarks/shell.ll -o benchmarks/shell.old.o # error
-
-    clang -O3 -Wno-deprecated-builtins benchmarks/dds7.out.ll -o benchmarks/dds7.new.o # warning
-    clang -O3 benchmarks/dijkstra_large.out.ll -o benchmarks/dijkstra_large.new.o
-    clang++ -O3 benchmarks/enchantedmaze.out.ll -o benchmarks/enchantedmaze.new.o
-    clang -O3 -lm benchmarks/int-stc.out.ll -o benchmarks/int-stc.new.o # error
-    clang -O3 -lm benchmarks/int-stc2.out.ll -o benchmarks/int-stc2.new.o # error
-    clang++ -O3 benchmarks/int-stcp.out.ll -o benchmarks/int-stcp.new.o # error
-    # clang -O3 benchmarks/shell.out.ll -o benchmarks/shell.new.o # error
-
     python3 scripts/summarize.py
 else
     echo "Build not found. Please run 'make build' to build the project."

@@ -98,10 +98,12 @@ ProcDefList
   : SSA_ID
   {
     program->add_proc(new Procedure(*$1));
+    delete $1;
   }
   | ProcDefList SSA_COMMA SSA_ID
   {
     program->add_proc(new Procedure(*$3));
+    delete $3;
   }
 ;
 
@@ -179,6 +181,8 @@ StartNode
     program->add_ssa_node(node);
 
     $$ = node;
+    delete $1;
+    delete $4;
   }
 ;
 
@@ -192,6 +196,8 @@ EndNode
     program->add_ssa_node(node);
 
     $$ = node;
+    delete $1;
+    delete $4;
   }
 ;
 
@@ -227,6 +233,8 @@ CallNode
     program->add_ssa_node(node);
 
     $$ = node;
+    delete $1;
+    delete $4;
   }
 ;
 
@@ -238,6 +246,7 @@ EmptyNode
     program->add_ssa_node(node);
 
     $$ = node;
+    delete $1;
   }
 ;
 
@@ -257,6 +266,7 @@ InputNode
     program->add_ssa_node(node);
 
     $$ = node;
+    delete $1;
   }
 ;
 
@@ -276,6 +286,7 @@ UsevarNode
     program->add_ssa_node(node);
 
     $$ = node;
+    delete $1;
   }
   | MetaNum SSA_COLON SSA_USEVAR SSA_ASSIGN Var SSA_EOS
   {
@@ -301,6 +312,7 @@ UsevarNode
     } else {
       $$ = NULL;
     }
+    delete $1;
   }
   | MetaNum SSA_COLON PhiStmt SSA_USEVAR SSA_ASSIGN PhiVar SSA_EOS
   {
@@ -325,6 +337,7 @@ UsevarNode
     } else {
       $$ = NULL;
     }
+    delete $1;
   }
 ;
 
@@ -349,6 +362,8 @@ ExprNode
     } else {
       $$ = NULL;
     }
+    delete $1;
+    delete $6;
   }
   | MetaNum SSA_COLON PhiStmt Var SSA_ASSIGN Opd SSA_OP Opd SSA_EOS
   {
@@ -370,6 +385,8 @@ ExprNode
     } else {
       $$ = NULL;
     }
+    delete $1;
+    delete $7;
   }
   | MetaNum SSA_COLON PhiStmt PhiStmt Var SSA_ASSIGN Opd SSA_OP Opd SSA_EOS
   {
@@ -391,6 +408,8 @@ ExprNode
     } else {
       $$ = NULL;
     }
+    delete $1;
+    delete $8;
   }
   | MetaNum SSA_COLON Var SSA_ASSIGN Opd SSA_EOS
   {
@@ -412,6 +431,7 @@ ExprNode
     } else {
       $$ = NULL;
     }
+    delete $1;
   }
   | MetaNum SSA_COLON PhiStmt Var SSA_ASSIGN Opd SSA_EOS
   {
@@ -433,6 +453,7 @@ ExprNode
     } else {
       $$ = NULL;
     }
+    delete $1;
   }
 ;
 
@@ -495,6 +516,8 @@ Var
   : SSA_ID SSA_UNDERSCORE MetaNum
   {
     $$ = new SSA_Opd(SSA_VarOpd, *$3, *$1);
+    delete $1;
+    delete $3;
   }
 ;
 
@@ -502,6 +525,8 @@ PhiVar
   : SSA_ID SSA_UNDERSCORE MetaNum SSA_UNDERSCORE SSA_PHI
   {
     $$ = new SSA_Opd(SSA_PhiOpd, *$3, *$1);
+    delete $1;
+    delete $3;
   }
 ;
 
