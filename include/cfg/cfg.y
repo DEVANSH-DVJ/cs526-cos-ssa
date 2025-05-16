@@ -86,10 +86,12 @@ ProcDefList
   : CFG_ID
   {
     program->add_proc(new Procedure(*$1));
+    delete $1;
   }
   | ProcDefList CFG_COMMA CFG_ID
   {
     program->add_proc(new Procedure(*$3));
+    delete $3;
   }
 ;
 
@@ -178,6 +180,7 @@ StartNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $4;
   }
 ;
 
@@ -190,6 +193,7 @@ EndNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $4;
   }
 ;
 
@@ -224,6 +228,7 @@ CallNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $4;
   }
 ;
 
@@ -238,6 +243,7 @@ InputNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $3;
   }
 ;
 
@@ -252,6 +258,7 @@ UsevarNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $5;
   }
 ;
 
@@ -266,6 +273,8 @@ ExprNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $3;
+    delete $6;
   }
   | CFG_NUM CFG_COLON CFG_ID CFG_ASSIGN Opd CFG_EOS
   {
@@ -277,6 +286,7 @@ ExprNode
     program->add_cfg_node(node);
 
     $$ = node;
+    delete $3;
   }
 ;
 
@@ -316,6 +326,7 @@ Opd
   | CFG_ID
   {
     $$ = new CFG_Opd(CFG_VarOpd, *$1);
+    delete $1;
   }
 ;
 
